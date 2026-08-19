@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Right Now RVA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ffffff;
+    --bg-2:#f7f7f8;
+    --text:#161719;
+    --text-2:#6b6f76;
+    --line:#e6e7ea;
+    --brand:#1F6F5C;      /* deep green — not DoorDash red, not Uber black */
+    --quiet:#2E8B72;
+    --moderate:#C98A1B;
+    --packed:#D0483A;
+    --shadow:0 1px 3px rgba(0,0,0,.06), 0 6px 16px rgba(0,0,0,.05);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{background:var(--bg);}
+  body{font-family:Inter,system-ui,sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;}
+  .app{max-width:520px;margin:0 auto;min-height:100vh;position:relative;overflow-x:hidden;}
+  button{font-family:inherit;cursor:pointer;}
+  :focus-visible{outline:2px solid var(--brand);outline-offset:2px;}
+
+  /* ============ TOP BAR ============ */
+  .bar{
+    position:sticky;top:0;z-index:30;background:var(--bg);
+    padding:12px 16px 10px;border-bottom:1px solid var(--line);
+  }
+  .loc{display:flex;align-items:center;gap:6px;font-size:15px;font-weight:700;}
+  .loc svg{width:16px;height:16px;fill:var(--brand);}
+  .loc span.city{font-weight:700;}
+  .loc .chev{margin-left:2px;opacity:.45;}
+  .search{
+    margin-top:10px;background:var(--bg-2);border-radius:999px;
+    display:flex;align-items:center;gap:9px;padding:11px 15px;
+    color:var(--text-2);font-size:14.5px;
+  }
+  .search svg{width:16px;height:16px;fill:var(--text-2);flex-shrink:0;}
+
+  /* ============ CATEGORY RAIL ============ */
+  .rail{display:flex;gap:8px;overflow-x:auto;padding:12px 16px;scrollbar-width:none;}
+  .rail::-webkit-scrollbar{display:none;}
+  .chip{
+    flex-shrink:0;border:1px solid var(--line);background:var(--bg);
+    border-radius:999px;padding:8px 14px;font-size:13.5px;font-weight:600;
+    color:var(--text);display:flex;align-items:center;gap:6px;
+    transition:background .15s,border-color .15s,color .15s;
+  }
+  .chip[aria-pressed="true"]{background:var(--text);color:#fff;border-color:var(--text);}
+  .chip .dot{width:7px;height:7px;border-radius:50%;}
+
+  /* ============ SECTION ============ */
+  .sec{padding:6px 16px 4px;}
+  .sec h2{font-size:20px;font-weight:800;letter-spacing:-.02em;}
+  .sec p{font-size:13.5px;color:var(--text-2);margin-top:2px;}
+
+  /* ============ CARDS ============ */
+  .feed{padding:8px 16px 90px;display:grid;gap:22px;}
+  .card{display:block;width:100%;text-align:left;background:none;border:0;padding:0;}
+  .photo{
+    position:relative;width:100%;aspect-ratio:16/10;border-radius:12px;
+    overflow:hidden;background:var(--bg-2);
+  }
+  .photo .ph{position:absolute;inset:0;}
+  .photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+  .pill{
+    position:absolute;left:10px;bottom:10px;
+    background:rgba(255,255,255,.96);backdrop-filter:blur(8px);
+    border-radius:999px;padding:6px 11px;
+    font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:6px;
+    box-shadow:0 1px 4px rgba(0,0,0,.14);
+  }
+  .pill .dot{width:8px;height:8px;border-radius:50%;}
+  .pill .sub{font-weight:500;color:var(--text-2);}
+  .fav{
+    position:absolute;right:10px;top:10px;width:32px;height:32px;border-radius:50%;
+    background:rgba(255,255,255,.92);border:0;display:grid;place-items:center;
+  }
+  .fav svg{width:16px;height:16px;fill:none;stroke:var(--text);stroke-width:2;}
+  .fav[aria-pressed="true"] svg{fill:var(--packed);stroke:var(--packed);}
+
+  .info{padding-top:10px;}
+  .row1{display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
+  .title{font-size:16.5px;font-weight:700;letter-spacing:-.01em;}
+  .rating{
+    flex-shrink:0;font-size:13px;font-weight:600;color:var(--text-2);
+    display:flex;align-items:center;gap:3px;
+  }
+  .rating svg{width:12px;height:12px;fill:var(--text);}
+  .row2{font-size:13.5px;color:var(--text-2);margin-top:3px;display:flex;gap:6px;flex-wrap:wrap;}
+  .row2 .sep{opacity:.4;}
+  .wait{margin-top:7px;font-size:13px;font-weight:600;}
+
+  .empty{
+    grid-column:1/-1;border:1px dashed var(--line);border-radius:12px;
+    padding:40px 20px;text-align:center;color:var(--text-2);font-size:14px;line-height:1.5;
+  }
+
+  /* ============ DETAIL ============ */
+  .detail{
+    position:fixed;inset:0;background:var(--bg);z-index:60;
+    max-width:520px;margin:0 auto;overflow-y:auto;
+    transform:translateX(100%);transition:transform .26s cubic-bezier(.32,.72,0,1);
+  }
+  .detail.on{transform:none;}
+  @media (prefers-reduced-motion:reduce){.detail{transition:none;}}
+  .hero{position:relative;width:100%;aspect-ratio:16/9;background:var(--bg-2);}
+  .hero .ph{position:absolute;inset:0;}
+  .back{
+    position:absolute;left:14px;top:14px;width:34px;height:34px;border-radius:50%;
+    background:rgba(255,255,255,.95);border:0;display:grid;place-items:center;
+    box-shadow:0 1px 4px rgba(0,0,0,.16);
+  }
+  .back svg{width:17px;height:17px;fill:none;stroke:var(--text);stroke-width:2.2;}
+  .dhead{padding:16px;border-bottom:8px solid var(--bg-2);}
+  .dhead h1{font-size:25px;font-weight:800;letter-spacing:-.025em;}
+  .dmeta{font-size:13.5px;color:var(--text-2);margin-top:5px;}
+  .status{
+    margin-top:14px;border:1px solid var(--line);border-radius:12px;padding:13px 14px;
+    display:flex;align-items:center;gap:12px;
+  }
+  .status .big{font-size:16px;font-weight:800;}
+  .status .note{font-size:12.5px;color:var(--text-2);margin-top:2px;line-height:1.4;}
+  .bars{display:flex;gap:2.5px;align-items:flex-end;height:34px;margin-left:auto;flex-shrink:0;}
+  .bars i{width:4.5px;border-radius:2px;background:var(--line);display:block;}
+  .bars i.on{background:currentColor;}
+  .bars i.now{outline:1.5px solid var(--text);outline-offset:1px;}
+
+  .actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:16px;}
+  .btn{
+    border-radius:11px;padding:14px;font-size:14.5px;font-weight:700;
+    border:1px solid var(--line);background:var(--bg);color:var(--text);
+  }
+  .btn.primary{background:var(--brand);color:#fff;border-color:var(--brand);}
+
+  .menu{padding:0 16px 40px;}
+  .menu h3{
+    font-size:17px;font-weight:800;letter-spacing:-.015em;
+    padding:20px 0 4px;position:sticky;top:0;background:var(--bg);
+  }
+  .item{
+    display:flex;gap:13px;padding:14px 0;border-bottom:1px solid var(--line);
+    align-items:flex-start;
+  }
+  .item .t{flex:1;}
+  .item .n{font-size:15px;font-weight:600;}
+  .item .d{font-size:13px;color:var(--text-2);margin-top:3px;line-height:1.45;}
+  .item .p{font-size:14px;font-weight:600;margin-top:6px;}
+  .item .thumb{
+    width:78px;height:78px;border-radius:9px;flex-shrink:0;background:var(--bg-2);
+    position:relative;overflow:hidden;
+  }
+
+  /* ============ REPORT SHEET ============ */
+  .scrim{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:80;display:none;align-items:flex-end;justify-content:center;}
+  .scrim.on{display:flex;}
+  .sheet{
+    background:var(--bg);width:100%;max-width:520px;border-radius:18px 18px 0 0;
+    padding:22px 16px calc(20px + env(safe-area-inset-bottom));
+    animation:rise .22s cubic-bezier(.32,.72,0,1);
+  }
+  @keyframes rise{from{transform:translateY(16px)}to{transform:none}}
+  @media (prefers-reduced-motion:reduce){.sheet{animation:none;}}
+  .sheet h2{font-size:21px;font-weight:800;letter-spacing:-.02em;}
+  .sheet p.s{font-size:14px;color:var(--text-2);margin-top:5px;}
+  .opts{display:grid;gap:8px;margin-top:16px;}
+  .opts button{
+    display:flex;align-items:center;gap:11px;text-align:left;
+    border:1px solid var(--line);background:var(--bg);border-radius:12px;
+    padding:15px;font-size:15px;font-weight:600;color:var(--text);
+  }
+  .opts .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+  .opts small{margin-left:auto;font-weight:400;font-size:12.5px;color:var(--text-2);}
+  .cancel{width:100%;margin-top:12px;background:none;border:0;color:var(--text-2);font-size:14px;padding:11px;}
+  .conf{margin-top:16px;background:var(--bg-2);border-radius:12px;padding:14px;font-size:14px;line-height:1.5;}
+  .conf .n{font-size:12.5px;color:var(--text-2);margin-top:5px;}
+
+  footer{padding:16px;font-size:11.5px;color:var(--text-2);line-height:1.6;border-top:1px solid var(--line);}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="bar">
+    <div class="loc">
+      <svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>
+      <span class="city">Richmond, VA</span>
+      <span class="chev">▾</span>
+    </div>
+    <div class="search">
+      <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg>
+      Search restaurants, bars, coffee
+    </div>
+  </div>
+
+  <div class="rail" id="rail"></div>
+
+  <div class="sec">
+    <h2 id="secTitle">Open near you</h2>
+    <p id="secSub"></p>
+  </div>
+
+  <div class="feed" id="feed"></div>
+
+  <footer>
+    Prototype. Busyness figures are placeholder data, not live readings. Photos are placeholders.
+  </footer>
+</div>
+
+<div class="detail" id="detail"></div>
+
+<div class="scrim" id="scrim" role="dialog" aria-modal="true">
+  <div class="sheet" id="sheet"></div>
+</div>
+
+<script>
+/* =================================================================
+   DATA — swap for a real API later. curve[24] = % of peak by hour.
+   photo: drop a real image URL in here and it renders instead of
+   the generated placeholder.
+   ================================================================= */
+const VENUES = [
+  {name:"Lamplighter Roasting Co.", cat:"Coffee", area:"Scott's Addition", rating:4.6, reviews:1240, price:"$", hue:28, photo:null,
+   curve:[0,0,0,0,0,0,18,42,71,78,66,58,54,49,44,36,24,12,4,0,0,0,0,0],
+   menu:[["Drinks",[["Cortado","Double shot, steamed milk","4.25"],["Cold brew","16oz, house blend","4.75"],["Chai latte","Spiced, oat milk available","5.50"]]],
+         ["Food",[["Avocado toast","Sourdough, chili flake, lemon","9.00"],["Breakfast sandwich","Egg, cheddar, brioche","7.50"]]]]},
+
+  {name:"Sub Rosa Bakery", cat:"Bakery", area:"Church Hill", rating:4.8, reviews:2110, price:"$$", hue:36, photo:null,
+   curve:[0,0,0,0,0,0,22,58,84,92,74,55,38,26,14,6,0,0,0,0,0,0,0,0],
+   menu:[["Morning",[["Wood-fired croissant","Laminated, stone-milled flour","4.50"],["Cardamom bun","Toasted, sugar crust","5.00"],["Seasonal galette","Ask about today's fruit","6.25"]]],
+         ["Loaves",[["Country sourdough","Naturally leavened","8.00"],["Rye miche","Whole grain, dense crumb","9.50"]]]]},
+
+  {name:"ZZQ Texas Craft Barbeque", cat:"Barbecue", area:"Scott's Addition", rating:4.7, reviews:3480, price:"$$", hue:14, photo:null,
+   curve:[0,0,0,0,0,0,0,0,0,0,34,76,95,88,62,44,52,74,81,56,22,0,0,0],
+   menu:[["By the pound",[["Brisket","Post oak smoked, 14 hours","32.00"],["Pork spare ribs","Dry rubbed","28.00"],["Jalapeño cheddar sausage","House made","24.00"]]],
+         ["Sides",[["Mac and cheese","Smoked gouda","6.00"],["Collards","Slow braised","5.50"]]]]},
+
+  {name:"The Veil Brewing Co.", cat:"Bars", area:"Scott's Addition", rating:4.5, reviews:1890, price:"$$", hue:48, photo:null,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,18,34,42,50,62,78,88,92,86,70,44,18,0],
+   menu:[["On tap",[["Master Shredder","Hazy IPA, 6.8%","8.00"],["Crucial Taunt","DIPA, 8.2%","9.50"],["Never Never Land","Sour, mixed fermentation","10.00"]]],
+         ["To go",[["4-pack crowler","Rotating selection","22.00"]]]]},
+
+  {name:"Mama J's Kitchen", cat:"Southern", area:"Jackson Ward", rating:4.7, reviews:4260, price:"$$", hue:22, photo:null,
+   curve:[0,0,0,0,0,0,0,0,12,32,58,82,90,68,52,48,62,80,86,64,34,12,0,0],
+   menu:[["Plates",[["Fried catfish","Cornmeal crust, two sides","18.00"],["Fried chicken","Quarter dark, two sides","16.50"],["Smothered pork chop","Onion gravy","17.00"]]],
+         ["Sides",[["Candied yams","","4.50"],["Mac and cheese","","4.50"],["Collard greens","Smoked turkey","4.50"]]]]},
+
+  {name:"Perly's Delicatessen", cat:"Deli", area:"Downtown", rating:4.6, reviews:2870, price:"$$", hue:8, photo:null,
+   curve:[0,0,0,0,0,0,0,24,46,58,72,88,94,71,48,30,18,10,0,0,0,0,0,0],
+   menu:[["Sandwiches",[["Pastrami on rye","House cured, mustard","16.00"],["Reuben","Kraut, swiss, russian","17.00"]]],
+         ["All day",[["Latkes","Sour cream, applesauce","9.00"],["Matzo ball soup","","8.00"]]]]},
+
+  {name:"Can Can Brasserie", cat:"Restaurants", area:"Carytown", rating:4.4, reviews:3020, price:"$$$", hue:340, photo:null,
+   curve:[0,0,0,0,0,0,0,18,42,66,74,82,86,64,42,38,56,78,90,74,50,24,0,0],
+   menu:[["Brasserie",[["Steak frites","Hanger, herb butter","32.00"],["Moules marinière","White wine, shallot","24.00"],["Croque madame","Gruyère, fried egg","17.00"]]],
+         ["Raw bar",[["Oysters","Half dozen, mignonette","19.00"]]]]},
+
+  {name:"Soul Taco", cat:"Tacos", area:"Jackson Ward", rating:4.5, reviews:1560, price:"$$", hue:32, photo:null,
+   curve:[0,0,0,0,0,0,0,0,0,0,22,54,68,46,34,38,60,78,84,70,52,30,10,0],
+   menu:[["Tacos",[["Fried chicken","Comeback sauce, slaw","6.00"],["Blackened catfish","Remoulade","6.50"],["Braised oxtail","Pickled onion","7.50"]]],
+         ["Sides",[["Elote","Cotija, lime","7.00"]]]]},
+
+  {name:"Stella's", cat:"Restaurants", area:"Near West End", rating:4.6, reviews:2640, price:"$$$", hue:200, photo:null,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,44,62,38,22,26,58,84,96,78,48,18,0,0],
+   menu:[["Meze",[["Saganaki","Flamed kefalograviera","14.00"],["Taramosalata","Roe spread, pita","11.00"]]],
+         ["Mains",[["Lamb chops","Oregano, lemon","38.00"],["Whole branzino","Grilled, ladolemono","34.00"]]]]},
+
+  {name:"Nate's Bagels", cat:"Bakery", area:"Church Hill", rating:4.7, reviews:980, price:"$", hue:40, photo:null,
+   curve:[0,0,0,0,0,0,26,64,88,80,58,34,16,6,0,0,0,0,0,0,0,0,0,0],
+   menu:[["Bagels",[["Everything","Boiled and baked daily","2.25"],["Sesame","","2.25"]]],
+         ["Built",[["Lox platter","Cream cheese, capers, onion","14.00"],["Egg and cheese","Add bacon +2","6.50"]]]]},
+
+  {name:"The Roosevelt", cat:"Southern", area:"Church Hill", rating:4.6, reviews:1820, price:"$$$", hue:18, photo:null,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,38,66,84,78,56,28,6,0],
+   menu:[["Dinner",[["Shrimp and grits","Byrd Mill grits, tasso","28.00"],["Fried chicken","Half bird, honey butter","26.00"]]],
+         ["Bar",[["Seasonal cocktail","Ask your server","13.00"]]]]},
+
+  {name:"Alewife", cat:"Restaurants", area:"Church Hill", rating:4.7, reviews:1140, price:"$$$", hue:190, photo:null,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,28,52,74,82,66,40,14,0,0],
+   menu:[["From the water",[["Whole roasted fish","Chesapeake catch, changes daily","36.00"],["Oyster stew","Cream, leek, dill","16.00"]]],
+         ["Land",[["Duck breast","Seasonal accompaniment","31.00"]]]]},
+
+  {name:"Blanchard's Coffee", cat:"Coffee", area:"The Fan", rating:4.5, reviews:870, price:"$", hue:26, photo:null,
+   curve:[0,0,0,0,0,0,20,48,66,62,54,50,46,44,38,28,16,8,0,0,0,0,0,0],
+   menu:[["Espresso",[["Flat white","","4.75"],["Americano","","3.50"]]],
+         ["Brewed",[["Pour over","Single origin, rotating","5.00"],["Drip","Free refills","3.00"]]]]},
+
+  {name:"Ardent Craft Ales", cat:"Bars", area:"Scott's Addition", rating:4.5, reviews:1620, price:"$$", hue:52, photo:null,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,14,28,38,46,58,72,84,80,68,52,30,10,0],
+   menu:[["Taproom",[["Ardent IPA","6.8%","7.00"],["Honey Ginger","5.2%","7.00"],["Pilsner","4.9%","6.50"]]],
+         ["Kitchen",[["Pretzel","Beer cheese","9.00"]]]]},
+
+  {name:"Brenner Pass", cat:"Restaurants", area:"Scott's Addition", rating:4.5, reviews:1330, price:"$$$", hue:170, photo:null,
+   curve:[0,0,0,0,0,0,0,0,16,38,44,52,58,40,28,32,54,76,88,72,46,20,0,0],
+   menu:[["Alpine",[["Raclette","Scraped tableside, potatoes","29.00"],["Fondue","Gruyère, kirsch","26.00"]]],
+         ["Plates",[["Rösti","Crisp potato, egg","15.00"]]]]},
+
+  {name:"Sabai", cat:"Restaurants", area:"The Fan", rating:4.4, reviews:1050, price:"$$", hue:120, photo:null,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,36,52,32,20,24,48,70,78,62,38,16,0,0],
+   menu:[["Curry",[["Massaman","Beef, potato, peanut","19.00"],["Green curry","Thai basil, bamboo","18.00"]]],
+         ["Noodles",[["Pad see ew","Wide rice noodle","17.00"]]]]},
+
+  {name:"Lunch / Supper", cat:"Southern", area:"Scott's Addition", rating:4.3, reviews:2240, price:"$$", hue:12, photo:null,
+   curve:[0,0,0,0,0,0,0,0,14,46,62,70,66,42,26,30,50,72,80,58,32,12,0,0],
+   menu:[["All day",[["Chicken and waffles","Hot honey","19.00"],["Meatloaf","Tomato glaze, two sides","18.00"]]],
+         ["Sides",[["Fried okra","","5.00"]]]]},
+
+  {name:"Crossroads Coffee", cat:"Coffee", area:"Forest Hill", rating:4.5, reviews:1410, price:"$", hue:30, photo:null,
+   curve:[0,0,0,0,0,0,16,40,62,70,58,50,44,40,36,30,20,10,0,0,0,0,0,0],
+   menu:[["Coffee",[["Latte","","4.50"],["Mocha","House ganache","5.25"]]],
+         ["Pastry",[["Scone","Rotating flavor","3.75"]]]]}
+];
+
+const CATS = ["All","Coffee","Bakery","Restaurants","Bars","Southern","Barbecue","Tacos","Deli"];
+
+/* ================= scoring ================= */
+const reports = {};
+const TTL = 45*60*1000;
+const LABEL = {quiet:"Not busy", moderate:"Steady", packed:"Packed"};
+const WAITS = {quiet:"Walk right in", moderate:"Short wait", packed:"Expect a wait"};
+
+function band(v){ return v<35?"quiet":v<68?"moderate":"packed"; }
+
+function score(v){
+  const d=new Date(), h=d.getHours(), f=d.getMinutes()/60;
+  const a=v.curve[h], b=v.curve[(h+1)%24];
+  let val = a + (b-a)*f;
+  let src = "Based on typical patterns";
+  const r = reports[v.name];
+  if (r && Date.now()-r.at < TTL){
+    const t = {quiet:20,moderate:50,packed:85}[r.level];
+    const w = .85 * (1 - (Date.now()-r.at)/TTL);
+    val = val*(1-w) + t*w;
+    src = r.count + (r.count===1?" person":" people") + " reported this " + ago(r.at);
+  }
+  val = Math.max(0,Math.min(100,Math.round(val)));
+  return {val, band:band(val), src};
+}
+function ago(t){const m=Math.round((Date.now()-t)/60000);return m<1?"just now":m+" min ago";}
+
+/* placeholder photo — replace by setting v.photo to an image URL */
+function ph(v, seed){
+  const h1=v.hue, h2=(v.hue+26)%360;
+  return `<div class="ph" style="background:
+    linear-gradient(135deg, hsl(${h1} 42% 76%) 0%, hsl(${h2} 38% 62%) 58%, hsl(${h1} 34% 48%) 100%)"></div>`;
+}
+function photoBlock(v){
+  return v.photo ? `<img src="${v.photo}" alt="">` : ph(v);
+}
+
+/* ================= feed ================= */
+let cat = "All", busyFilter = null;
+
+function rail(){
+  document.getElementById("rail").innerHTML = CATS.map(c =>
+    `<button class="chip" data-c="${c}" aria-pressed="${c===cat}">${c}</button>`).join("")
+    + ["quiet","moderate","packed"].map(b =>
+    `<button class="chip" data-b="${b}" aria-pressed="${b===busyFilter}"><span class="dot" style="background:var(--${b})"></span>${LABEL[b]}</button>`).join("");
+}
+
+function feed(){
+  const all = VENUES.map(v=>({v,s:score(v)})).filter(x=>x.s.val>0);
+  let list = all;
+  if (cat!=="All") list = list.filter(x=>x.v.cat===cat);
+  if (busyFilter) list = list.filter(x=>x.s.band===busyFilter);
+  list.sort((a,b)=>b.s.val-a.s.val);
+
+  document.getElementById("secTitle").textContent =
+    busyFilter ? LABEL[busyFilter] + " right now" : (cat==="All" ? "Open near you" : cat);
+  document.getElementById("secSub").textContent =
+    list.length + " open · " + new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit"});
+
+  document.getElementById("feed").innerHTML = list.length ? list.map(({v,s},i)=>`
+    <button class="card" data-open="${v.name}">
+      <div class="photo">
+        ${photoBlock(v)}
+        <span class="fav" role="presentation"><svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.9-9.3-9A5 5 0 0 1 12 6.2 5 5 0 0 1 21.3 12c-1.8 4.1-9.3 9-9.3 9z"/></svg></span>
+        <span class="pill"><span class="dot" style="background:var(--${s.band})"></span>${LABEL[s.band]}<span class="sub">${s.val}%</span></span>
+      </div>
+      <div class="info">
+        <div class="row1">
+          <span class="title">${v.name}</span>
+          <span class="rating"><svg viewBox="0 0 24 24"><path d="M12 2l3 6.6 7 .9-5 5 1.2 7-6.2-3.4L5.8 21.5 7 14.5l-5-5 7-.9z"/></svg>${v.rating}<span style="opacity:.6">(${(v.reviews/1000).toFixed(1)}k)</span></span>
+        </div>
+        <div class="row2">${v.cat}<span class="sep">·</span>${v.price}<span class="sep">·</span>${v.area}</div>
+        <div class="wait" style="color:var(--${s.band})">${WAITS[s.band]}</div>
+      </div>
+    </button>`).join("")
+    : `<div class="empty">Nothing here right now.<br>Try a different filter.</div>`;
+}
+
+/* ================= detail ================= */
+function openDetail(name){
+  const v = VENUES.find(x=>x.name===name); if(!v) return;
+  const s = score(v);
+  const nowH = new Date().getHours();
+  const bars = v.curve.map((p,i)=>{
+    const on = p>0;
+    return `<i class="${on?"on":""} ${i===nowH?"now":""}" style="height:${Math.max(3,p*.34)}px"></i>`;
+  }).join("");
+
+  const d = document.getElementById("detail");
+  d.innerHTML = `
+    <div class="hero">${photoBlock(v)}
+      <button class="back" id="back" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+    </div>
+    <div class="dhead">
+      <h1>${v.name}</h1>
+      <div class="dmeta">★ ${v.rating} (${v.reviews.toLocaleString()}) · ${v.cat} · ${v.price} · ${v.area}</div>
+      <div class="status" style="color:var(--${s.band})">
+        <div>
+          <div class="big">${LABEL[s.band]} — ${s.val}% of peak</div>
+          <div class="note">${s.src}</div>
+        </div>
+        <div class="bars">${bars}</div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn primary" id="book">Reserve a table</button>
+      <button class="btn" data-report="${v.name}">I'm here now</button>
+    </div>
+    <div class="menu">
+      ${v.menu.map(([sec,items])=>`
+        <h3>${sec}</h3>
+        ${items.map(([n,desc,p])=>`
+          <div class="item">
+            <div class="t">
+              <div class="n">${n}</div>
+              ${desc?`<div class="d">${desc}</div>`:""}
+              <div class="p">$${p}</div>
+            </div>
+            <div class="thumb">${ph(v)}</div>
+          </div>`).join("")}
+      `).join("")}
+    </div>`;
+  d.classList.add("on");
+  document.body.style.overflow="hidden";
+  d.scrollTop = 0;
+  document.getElementById("back").onclick = closeDetail;
+  document.getElementById("book").onclick = () =>
+    alert("Booking connects once the OpenTable partner integration is approved.");
+}
+function closeDetail(){
+  document.getElementById("detail").classList.remove("on");
+  document.body.style.overflow="";
+}
+
+/* ================= report ================= */
+const scrim = document.getElementById("scrim");
+const OPTS = [["quiet","Not busy","Seats available"],["moderate","Steady","Filling up"],["packed","Packed","There's a wait"]];
+let target=null;
+
+function openSheet(name){
+  target=name;
+  document.getElementById("sheet").innerHTML = `
+    <h2>How busy is it?</h2>
+    <p class="s">At ${name} — what does it look like right now?</p>
+    <div class="opts">${OPTS.map(([k,t,d])=>
+      `<button data-k="${k}"><span class="dot" style="background:var(--${k})"></span>${t}<small>${d}</small></button>`).join("")}
+    </div>
+    <button class="cancel" data-close>Not right now</button>`;
+  scrim.classList.add("on");
+}
+function closeSheet(){scrim.classList.remove("on");target=null;}
+
+scrim.addEventListener("click",e=>{
+  if(e.target===scrim || e.target.hasAttribute("data-close")) return closeSheet();
+  const b=e.target.closest("button[data-k]"); if(!b||!target) return;
+  const prev=reports[target], fresh=prev && Date.now()-prev.at<TTL;
+  reports[target]={level:b.dataset.k,at:Date.now(),
+    count: fresh && prev.level===b.dataset.k ? prev.count+1 : 1};
+  const r=reports[target];
+  document.getElementById("sheet").innerHTML=`
+    <h2>Thanks</h2>
+    <p class="s">That updates ${target} for everyone looking right now.</p>
+    <div class="conf">Now showing <b style="color:var(--${r.level})">${LABEL[r.level]}</b>
+      <div class="n">${r.count} ${r.count===1?"person has":"people have"} said this in the last 45 minutes</div>
+    </div>
+    <button class="cancel" data-close>Close</button>`;
+  const t=target;
+  feed();
+  if(document.getElementById("detail").classList.contains("on")){
+    const sc=document.getElementById("detail").scrollTop;
+    openDetail(t);
+    document.getElementById("detail").scrollTop=sc;
+  }
+});
+
+/* ================= events ================= */
+document.getElementById("rail").addEventListener("click",e=>{
+  const b=e.target.closest(".chip"); if(!b) return;
+  if(b.dataset.c) cat = b.dataset.c;
+  if(b.dataset.b) busyFilter = busyFilter===b.dataset.b ? null : b.dataset.b;
+  rail(); feed();
+});
+document.getElementById("feed").addEventListener("click",e=>{
+  const c=e.target.closest("[data-open]"); if(c) openDetail(c.dataset.open);
+});
+document.getElementById("detail").addEventListener("click",e=>{
+  const r=e.target.closest("[data-report]"); if(r) openSheet(r.dataset.report);
+});
+document.addEventListener("keydown",e=>{
+  if(e.key!=="Escape") return;
+  if(scrim.classList.contains("on")) closeSheet();
+  else closeDetail();
+});
+
+rail(); feed();
+setInterval(()=>{ if(!scrim.classList.contains("on")) feed(); },60000);
+</script>
+</body>
+</html>
