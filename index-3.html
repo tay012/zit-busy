@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Right Now RVA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ffffff; --bg-2:#f7f7f8; --text:#161719; --text-2:#6b6f76;
+    --line:#e6e7ea; --brand:#1F6F5C;
+    --quiet:#2E8B72; --moderate:#C98A1B; --packed:#D0483A;
+    --pill-bg:rgba(255,255,255,.96); --pill-fg:#161719;
+    --chipimg:.85; --scrim:rgba(0,0,0,.4);
+  }
+  html[data-theme="dark"]{
+    --bg:#0F1115; --bg-2:#171A20; --text:#EDEEF0; --text-2:#9AA1AC;
+    --line:#262A32; --brand:#3FA98C;
+    --quiet:#4FBF9E; --moderate:#E0A93F; --packed:#E8695A;
+    --pill-bg:rgba(20,22,26,.92); --pill-fg:#EDEEF0;
+    --chipimg:.78; --scrim:rgba(0,0,0,.62);
+  }
+  html{color-scheme:light;}
+  html[data-theme="dark"]{color-scheme:dark;}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{background:var(--bg);}
+  body{font-family:Inter,system-ui,sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;}
+  .app{max-width:520px;margin:0 auto;min-height:100vh;position:relative;overflow-x:hidden;}
+  button{font-family:inherit;cursor:pointer;}
+  :focus-visible{outline:2px solid var(--brand);outline-offset:2px;}
+
+  /* ---------- top bar ---------- */
+  .bar{position:sticky;top:0;z-index:30;background:var(--bg);padding:12px 16px 10px;border-bottom:1px solid var(--line);}
+  .loc{display:flex;align-items:center;gap:6px;font-size:15px;font-weight:700;}
+  .loc svg{width:16px;height:16px;fill:var(--brand);}
+  .loc .chev{margin-left:2px;opacity:.45;}
+  .theme{margin-left:auto;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);
+    background:var(--bg-2);display:grid;place-items:center;padding:0;flex-shrink:0;}
+  .theme svg{width:17px;height:17px;fill:var(--text);}
+  .search{margin-top:10px;background:var(--bg-2);border-radius:999px;display:flex;align-items:center;gap:9px;padding:11px 15px;color:var(--text-2);font-size:14.5px;}
+  .search svg{width:16px;height:16px;fill:var(--text-2);flex-shrink:0;}
+
+  /* ---------- rail ---------- */
+  .rail{display:flex;gap:8px;overflow-x:auto;padding:12px 16px;scrollbar-width:none;}
+  .rail::-webkit-scrollbar{display:none;}
+  .chip{flex-shrink:0;border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:8px 14px;font-size:13.5px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:6px;transition:background .15s,border-color .15s,color .15s;}
+  .chip[aria-pressed="true"]{background:var(--text);color:#fff;border-color:var(--text);}
+  .chip .dot{width:7px;height:7px;border-radius:50%;}
+  .chip.filters{border-color:var(--text);font-weight:700;}
+  .chip.filters svg{width:14px;height:14px;fill:currentColor;}
+  .chip.filters .badge{background:var(--brand);color:#fff;border-radius:999px;font-size:11px;padding:1px 6px;font-weight:700;}
+  .chip.filters[data-active="true"]{background:var(--brand);color:#fff;border-color:var(--brand);}
+  .chip.filters[data-active="true"] .badge{background:rgba(255,255,255,.25);}
+
+  /* ---------- section ---------- */
+  .sec{padding:6px 16px 4px;display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
+  .sec h2{font-size:20px;font-weight:800;letter-spacing:-.02em;}
+  .sec .cnt{font-size:13px;color:var(--text-2);flex-shrink:0;}
+
+  /* ---------- cards ---------- */
+  .feed{padding:8px 16px 90px;display:grid;gap:22px;}
+  .divider{display:flex;align-items:center;gap:11px;color:var(--text-2);font-size:13px;font-weight:600;margin-top:6px;}
+  .divider::after{content:"";flex:1;height:1px;background:var(--line);}
+  .card{display:block;width:100%;text-align:left;background:none;border:0;padding:0;}
+  .photo{position:relative;width:100%;aspect-ratio:16/10;border-radius:12px;overflow:hidden;background:var(--bg-2);}
+  .photo .ph{position:absolute;inset:0;}
+  .photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+  .card.shut .photo .ph,.card.shut .photo img{filter:grayscale(.85) brightness(var(--chipimg));}
+  .pill{position:absolute;left:10px;bottom:10px;background:var(--pill-bg);color:var(--pill-fg);backdrop-filter:blur(8px);border-radius:999px;padding:6px 11px;font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:6px;box-shadow:0 1px 4px rgba(0,0,0,.14);}
+  .pill .dot{width:8px;height:8px;border-radius:50%;}
+  .pill .sub{font-weight:500;color:var(--text-2);}
+  .pill.shut{background:rgba(12,14,17,.92);color:#fff;}
+  .fav{position:absolute;right:10px;top:10px;width:32px;height:32px;border-radius:50%;background:var(--pill-bg);border:0;display:grid;place-items:center;}
+  .fav svg{width:16px;height:16px;fill:none;stroke:var(--pill-fg);stroke-width:2;}
+
+  .info{padding-top:10px;}
+  .row1{display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
+  .title{font-size:16.5px;font-weight:700;letter-spacing:-.01em;}
+  .card.shut .title{color:var(--text-2);}
+  .rating{flex-shrink:0;font-size:13px;font-weight:600;color:var(--text-2);display:flex;align-items:center;gap:3px;}
+  .rating svg{width:12px;height:12px;fill:var(--text);}
+  .row2{font-size:13.5px;color:var(--text-2);margin-top:3px;}
+  .row2 .sep{opacity:.4;margin:0 5px;}
+  .wait{margin-top:7px;font-size:13px;font-weight:600;}
+  .shutline{margin-top:7px;font-size:13px;color:var(--text-2);line-height:1.45;}
+  .shutline b{color:var(--text);font-weight:700;}
+
+  .empty{border:1px dashed var(--line);border-radius:12px;padding:40px 20px;text-align:center;color:var(--text-2);font-size:14px;line-height:1.5;}
+  .empty button{margin-top:12px;background:var(--text);color:#fff;border:0;border-radius:9px;padding:10px 16px;font-size:13.5px;font-weight:600;}
+
+  /* ---------- filter panel ---------- */
+  .panel{position:fixed;inset:0;z-index:70;display:none;}
+  .panel.on{display:block;}
+  .panel .bg{position:absolute;inset:0;background:var(--scrim);}
+  .panel .box{
+    position:absolute;left:0;right:0;bottom:0;max-width:520px;margin:0 auto;
+    background:var(--bg);border-radius:18px 18px 0 0;max-height:88vh;display:flex;flex-direction:column;
+    animation:rise .24s cubic-bezier(.32,.72,0,1);
+  }
+  @keyframes rise{from{transform:translateY(20px)}to{transform:none}}
+  @media (prefers-reduced-motion:reduce){.panel .box{animation:none;}}
+  .phead{display:flex;align-items:center;justify-content:space-between;padding:18px 16px 14px;border-bottom:1px solid var(--line);}
+  .phead h2{font-size:19px;font-weight:800;letter-spacing:-.02em;}
+  .phead .x{background:none;border:0;font-size:22px;line-height:1;color:var(--text-2);padding:2px 6px;}
+  .pbody{overflow-y:auto;padding:4px 16px 16px;}
+  .grp{padding:18px 0 4px;border-bottom:1px solid var(--line);}
+  .grp:last-child{border-bottom:0;}
+  .grp h3{font-size:14px;font-weight:700;margin-bottom:11px;}
+  .opts{display:flex;flex-wrap:wrap;gap:8px;}
+  .opt{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:10px 14px;font-size:14px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:7px;}
+  .opt[aria-pressed="true"]{background:var(--brand);color:#fff;border-color:var(--brand);}
+  .opt .dot{width:8px;height:8px;border-radius:50%;}
+  .opt[aria-pressed="true"] .dot{box-shadow:0 0 0 1.5px rgba(255,255,255,.6);}
+  .toggle{display:flex;justify-content:space-between;align-items:center;padding:4px 0 8px;}
+  .toggle span{font-size:14.5px;font-weight:600;}
+  .toggle small{display:block;font-size:12.5px;color:var(--text-2);font-weight:400;margin-top:2px;}
+  .sw{width:48px;height:28px;border-radius:999px;background:var(--line);border:0;position:relative;flex-shrink:0;transition:background .18s;}
+  .sw::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .18s;}
+  .sw[aria-pressed="true"]{background:var(--brand);}
+  .sw[aria-pressed="true"]::after{transform:translateX(20px);}
+  .pfoot{display:flex;gap:9px;padding:14px 16px calc(16px + env(safe-area-inset-bottom));border-top:1px solid var(--line);}
+  .pfoot button{flex:1;border-radius:11px;padding:14px;font-size:14.5px;font-weight:700;border:1px solid var(--line);background:var(--bg);color:var(--text);}
+  .pfoot .apply{flex:2;background:var(--brand);color:#fff;border-color:var(--brand);}
+
+  /* ---------- detail ---------- */
+  .detail{position:fixed;inset:0;background:var(--bg);z-index:60;max-width:520px;margin:0 auto;overflow-y:auto;transform:translateX(100%);transition:transform .26s cubic-bezier(.32,.72,0,1);}
+  .detail.on{transform:none;}
+  @media (prefers-reduced-motion:reduce){.detail{transition:none;}}
+  .hero{position:relative;width:100%;aspect-ratio:16/9;background:var(--bg-2);}
+  .hero .ph{position:absolute;inset:0;}
+  .hero.shut .ph{filter:grayscale(.85) brightness(var(--chipimg));}
+  .back{position:absolute;left:14px;top:14px;width:34px;height:34px;border-radius:50%;background:var(--pill-bg);border:0;display:grid;place-items:center;box-shadow:0 1px 4px rgba(0,0,0,.24);}
+  .back svg{width:17px;height:17px;fill:none;stroke:var(--pill-fg);stroke-width:2.2;}
+  .dhead{padding:16px;border-bottom:8px solid var(--bg-2);}
+  .dhead h1{font-size:25px;font-weight:800;letter-spacing:-.025em;}
+  .dmeta{font-size:13.5px;color:var(--text-2);margin-top:5px;}
+  .status{margin-top:14px;border:1px solid var(--line);border-radius:12px;padding:13px 14px;display:flex;align-items:center;gap:12px;}
+  .status .big{font-size:16px;font-weight:800;}
+  .status .note{font-size:12.5px;color:var(--text-2);margin-top:3px;line-height:1.45;}
+  .bars{display:flex;gap:2.5px;align-items:flex-end;height:34px;margin-left:auto;flex-shrink:0;}
+  .bars i{width:4.5px;border-radius:2px;background:var(--line);display:block;}
+  .bars i.on{background:currentColor;}
+  .bars i.now{outline:1.5px solid var(--text);outline-offset:1px;}
+  .hours{margin-top:12px;font-size:13px;color:var(--text-2);line-height:1.6;}
+  .hours b{color:var(--text);font-weight:600;}
+  .actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:16px;}
+  .btn{border-radius:11px;padding:14px;font-size:14.5px;font-weight:700;border:1px solid var(--line);background:var(--bg);color:var(--text);}
+  .btn.primary{background:var(--brand);color:#fff;border-color:var(--brand);}
+  .btn[disabled]{opacity:.45;cursor:default;}
+  .menu{padding:0 16px 40px;}
+  .menu h3{font-size:17px;font-weight:800;letter-spacing:-.015em;padding:20px 0 4px;position:sticky;top:0;background:var(--bg);}
+  .item{display:flex;gap:13px;padding:14px 0;border-bottom:1px solid var(--line);align-items:flex-start;}
+  .item .t{flex:1;}
+  .item .n{font-size:15px;font-weight:600;}
+  .item .d{font-size:13px;color:var(--text-2);margin-top:3px;line-height:1.45;}
+  .item .p{font-size:14px;font-weight:600;margin-top:6px;}
+  .item .thumb{width:78px;height:78px;border-radius:9px;flex-shrink:0;background:var(--bg-2);position:relative;overflow:hidden;}
+
+  /* ---------- report sheet ---------- */
+  .scrim{position:fixed;inset:0;background:var(--scrim);z-index:80;display:none;align-items:flex-end;justify-content:center;}
+  .scrim.on{display:flex;}
+  .sheet{background:var(--bg);width:100%;max-width:520px;border-radius:18px 18px 0 0;padding:22px 16px calc(20px + env(safe-area-inset-bottom));animation:rise .22s cubic-bezier(.32,.72,0,1);}
+  .sheet h2{font-size:21px;font-weight:800;letter-spacing:-.02em;}
+  .sheet p.s{font-size:14px;color:var(--text-2);margin-top:5px;}
+  .ropts{display:grid;gap:8px;margin-top:16px;}
+  .ropts button{display:flex;align-items:center;gap:11px;text-align:left;border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:15px;font-size:15px;font-weight:600;color:var(--text);}
+  .ropts .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+  .ropts small{margin-left:auto;font-weight:400;font-size:12.5px;color:var(--text-2);}
+  .cancel{width:100%;margin-top:12px;background:none;border:0;color:var(--text-2);font-size:14px;padding:11px;}
+  .conf{margin-top:16px;background:var(--bg-2);border-radius:12px;padding:14px;font-size:14px;line-height:1.5;}
+  .conf .n{font-size:12.5px;color:var(--text-2);margin-top:5px;}
+
+  footer{padding:16px;font-size:11.5px;color:var(--text-2);line-height:1.6;border-top:1px solid var(--line);}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="bar">
+    <div class="loc">
+      <svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>
+      <span>Richmond, VA</span><span class="chev">▾</span>
+      <button class="theme" id="themeBtn" aria-label="Switch theme"></button>
+    </div>
+    <div class="search">
+      <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg>
+      Search restaurants, bars, coffee
+    </div>
+  </div>
+
+  <div class="rail" id="rail"></div>
+
+  <div class="sec"><h2 id="secTitle">Near you</h2><span class="cnt" id="secCnt"></span></div>
+  <div class="feed" id="feed"></div>
+
+  <footer>Prototype. Busyness figures are placeholder data, not live readings. Photos and menus are placeholders.</footer>
+</div>
+
+<div class="detail" id="detail"></div>
+
+<div class="panel" id="panel">
+  <div class="bg" data-close-panel></div>
+  <div class="box">
+    <div class="phead"><h2>Filters</h2><button class="x" data-close-panel aria-label="Close">✕</button></div>
+    <div class="pbody" id="pbody"></div>
+    <div class="pfoot">
+      <button id="clearAll">Clear all</button>
+      <button class="apply" id="applyBtn">Show results</button>
+    </div>
+  </div>
+</div>
+
+<div class="scrim" id="scrim" role="dialog" aria-modal="true"><div class="sheet" id="sheet"></div></div>
+
+<script>
+/* =================================================================
+   THEME — follows the system by default, remembers a manual choice.
+   ================================================================= */
+const SUN='<svg viewBox="0 0 24 24"><path d="M12 17a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-13.2a1 1 0 0 1-1-1V1.6a1 1 0 1 1 2 0v1.2a1 1 0 0 1-1 1zm0 18.6a1 1 0 0 1-1-1v-1.2a1 1 0 1 1 2 0v1.2a1 1 0 0 1-1 1zM4.2 12a1 1 0 0 1-1 1H2a1 1 0 1 1 0-2h1.2a1 1 0 0 1 1 1zm18.8 0a1 1 0 0 1-1 1h-1.2a1 1 0 1 1 0-2H22a1 1 0 0 1 1 1zM6 6a1 1 0 0 1-1.4 0l-.9-.8A1 1 0 0 1 5.1 3.7l.9.9A1 1 0 0 1 6 6zm13.8 13.8a1 1 0 0 1-1.4 0l-.9-.9a1 1 0 0 1 1.4-1.4l.9.9a1 1 0 0 1 0 1.4zM6 18a1 1 0 0 1 0 1.4l-.9.9a1 1 0 0 1-1.4-1.4l.9-.9A1 1 0 0 1 6 18zM19.8 4.2a1 1 0 0 1 0 1.4l-.9.9a1 1 0 1 1-1.4-1.4l.9-.9a1 1 0 0 1 1.4 0z"/></svg>';
+const MOON='<svg viewBox="0 0 24 24"><path d="M21.6 13.3A9 9 0 0 1 10.7 2.4a1 1 0 0 0-1.3-1.2A11 11 0 1 0 22.8 14.6a1 1 0 0 0-1.2-1.3z"/></svg>';
+let manual = null;
+function systemDark(){return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;}
+function isDark(){return manual===null ? systemDark() : manual==='dark';}
+function paintTheme(){
+  const d=isDark();
+  document.documentElement.setAttribute('data-theme', d?'dark':'light');
+  const m=document.querySelector('meta[name="theme-color"]');
+  if(m) m.setAttribute('content', d?'#0F1115':'#ffffff');
+  const b=document.getElementById('themeBtn');
+  if(b){ b.innerHTML = d?SUN:MOON; b.setAttribute('aria-label', d?'Switch to light mode':'Switch to dark mode'); }
+}
+paintTheme();
+if(window.matchMedia){
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{ if(manual===null) paintTheme(); });
+}
+
+/* =================================================================
+   DATA. open/close are 24h decimals (17.5 = 5:30pm).
+   Overnight venues wrap past 24 (e.g. close: 26 = 2am).
+   ================================================================= */
+const V = [
+  {name:"The Boathouse at Sunday Park", cat:"Restaurants", area:"Short Pump", rating:4.4, reviews:2140, price:3, hue:198, photo:null, open:11, close:22,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,42,64,48,34,38,58,80,88,72,46,18,0,0],
+   menu:[["From the water",[["Crab cakes","Jumbo lump, remoulade","34.00"],["Rockfish","Seasonal preparation","32.00"],["Shrimp and grits","Andouille, tasso cream","27.00"]]],["Land",[["Filet mignon","8oz, bordelaise","42.00"],["Chicken Chesapeake","Crab, hollandaise","29.00"]]]]},
+  {name:"Kabuto Japanese Steakhouse", cat:"Restaurants", area:"Short Pump", rating:4.3, reviews:1680, price:2, hue:352, photo:null, open:11.5, close:22,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,38,56,34,22,28,54,82,90,74,48,20,0,0],
+   menu:[["Hibachi",[["Hibachi chicken","Fried rice, vegetables, soup","22.00"],["Hibachi steak & shrimp","Combination","31.00"],["Filet mignon hibachi","","34.00"]]],["Sushi",[["Volcano roll","Baked scallop, spicy mayo","14.00"],["Rainbow roll","Assorted sashimi","15.00"]]]]},
+  {name:"Casa Del Barco Short Pump", cat:"Tacos", area:"Short Pump", rating:4.2, reviews:1420, price:2, hue:24, photo:null, open:11, close:23,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,52,70,50,38,44,66,84,86,72,54,32,10,0],
+   menu:[["Tacos",[["Al pastor","Pineapple, cilantro, onion","5.50"],["Baja fish","Beer battered, slaw","6.00"],["Carne asada","","6.00"]]],["Plates",[["Enchiladas","Choice of sauce","19.00"],["Fajitas","Steak or chicken, sizzling","24.00"]]],["Bar",[["House margarita","On the rocks","11.00"]]]]},
+  {name:"Bonefish Grill Short Pump", cat:"Restaurants", area:"Short Pump", rating:4.1, reviews:1290, price:2, hue:186, photo:null, open:11, close:22,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,40,58,40,26,32,56,78,82,64,40,16,0,0],
+   menu:[["Grill",[["Bang Bang Shrimp","Crispy, spicy cream sauce","12.90"],["Chilean sea bass","Wood grilled","36.00"],["Atlantic salmon","Choice of sauce","25.00"]]],["Sides",[["Garlic whipped potatoes","","5.00"]]]]},
+  {name:"Sedona Taphouse", cat:"Bars", area:"Short Pump", rating:4.3, reviews:1110, price:2, hue:38, photo:null, open:11, close:23,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,44,60,44,36,46,70,86,84,70,52,28,8,0],
+   menu:[["Taps",[["Rotating craft draft","50+ on tap","7.00"],["Flight","Four 5oz pours","12.00"]]],["Kitchen",[["Steak frites","Hand cut","28.00"],["Taphouse burger","Aged cheddar, bacon jam","17.00"]]]]},
+  {name:"Tazza Kitchen Short Pump", cat:"Restaurants", area:"Short Pump", rating:4.4, reviews:980, price:2, hue:104, photo:null, open:11, close:22,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,48,66,44,30,36,58,80,84,66,42,16,0,0],
+   menu:[["Wood fired",[["Margherita pizza","San Marzano, basil","16.00"],["Wood roasted chicken","Half bird, seasonal sides","24.00"]]],["Starters",[["Cornbread","Honey butter, cast iron","8.00"],["Charred octopus","","16.00"]]]]},
+  {name:"Fat Dragon Short Pump", cat:"Restaurants", area:"Short Pump", rating:4.2, reviews:760, price:2, hue:8, photo:null, open:11.5, close:22,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,36,54,32,20,26,50,74,80,62,38,14,0,0],
+   menu:[["Wok",[["General Tso's","Crispy chicken, house sauce","18.00"],["Dan dan noodles","Sichuan pork, chili oil","16.00"]]],["Dim sum",[["Pork soup dumplings","Six pieces","13.00"],["Scallion pancake","","9.00"]]]]},
+  {name:"Pearl Raw Bar", cat:"Restaurants", area:"Short Pump", rating:4.5, reviews:640, price:3, hue:172, photo:null, open:16, close:23,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,34,62,82,78,58,30,8,0],
+   menu:[["Raw",[["Oysters","Half dozen, East and West coast","20.00"],["Tuna crudo","Citrus, chili","17.00"]]],["Plates",[["Lobster roll","Warm butter, brioche","28.00"],["Scallops","Seared, seasonal","32.00"]]]]},
+  {name:"Starbucks Short Pump Town Center", cat:"Coffee", area:"Short Pump", rating:4.0, reviews:890, price:1, hue:150, photo:null, open:5.5, close:21,
+   curve:[0,0,0,0,0,44,72,88,82,64,56,58,54,48,44,42,36,26,14,6,0,0,0,0],
+   menu:[["Espresso",[["Caffè latte","Grande","5.25"],["Caramel macchiato","Grande","6.15"]]],["Cold",[["Cold brew","Grande","4.75"],["Refresher","Assorted flavors","5.45"]]],["Food",[["Egg bites","Two, sous vide","5.45"]]]]},
+  {name:"Sweet Frog Short Pump", cat:"Bakery", area:"Short Pump", rating:4.2, reviews:520, price:1, hue:322, photo:null, open:12, close:22,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,0,18,30,42,54,62,74,86,80,58,30,0,0],
+   menu:[["Self serve",[["Frozen yogurt","Priced by weight, per oz","0.62"]]],["Toppings",[["Fresh fruit","Included by weight","0.00"],["Candy and cereal","Included by weight","0.00"]]]]},
+  {name:"Chick-fil-A Short Pump", cat:"Fast food", area:"Short Pump", rating:4.5, reviews:2380, price:1, hue:6, photo:"https://dynamic-media-cdn.tripadvisor.com/media/photo-o/1b/59/f9/79/order-delivery-through.jpg?w=900&h=500&s=1", open:6.5, close:22,
+   curve:[0,0,0,0,0,0,28,52,44,38,56,88,96,72,54,58,74,86,78,54,30,12,0,0],
+   menu:[["Chicken",[["Chick-fil-A Sandwich","Pressure cooked, pickles","5.99"],["Spicy Deluxe","Pepper jack, lettuce, tomato","7.49"],["8ct Nuggets","","5.79"]]],["Sides",[["Waffle fries","Medium","2.99"],["Mac & cheese","","4.19"]]],["Drinks",[["Sweet tea","Large","2.49"],["Frosted lemonade","","4.99"]]]]},
+  {name:"Cook Out", cat:"Fast food", area:"Short Pump", rating:4.3, reviews:1920, price:1, hue:352, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRBvNtXnLrHw31mdZjJT3sZHcD-dckT4fEoyyGKAic67Q&s=10", open:10.5, close:27,
+   curve:[62,44,26,10,0,0,0,0,0,0,32,74,82,58,44,48,66,84,88,80,72,68,74,70],
+   menu:[["Trays",[["Cook Out Tray","Entrée, two sides, drink","7.29"],["BBQ Tray","Chopped pork","7.99"]]],["Burgers",[["Big Double Burger","","4.49"],["Cajun Chicken","","4.29"]]],["Shakes",[["Milkshake","40+ flavors","3.79"]]]]},
+  {name:"Raising Cane's", cat:"Fast food", area:"Short Pump", rating:4.4, reviews:1540, price:1, hue:20, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3WuQCXl3fSaUC2xTMGufUnqHbFcO5H6yUp_UHOtRXTw&s=10", open:10, close:25,
+   curve:[48,22,0,0,0,0,0,0,0,0,30,78,90,64,48,52,70,88,84,66,52,40,58,54],
+   menu:[["Combos",[["Box Combo","4 tenders, fries, toast, slaw","11.29"],["3 Finger Combo","","9.49"]]],["Extras",[["Cane's Sauce","","0.50"],["Texas Toast","","1.29"]]]]},
+  {name:"Chipotle Short Pump", cat:"Fast food", area:"Short Pump", rating:4.0, reviews:1180, price:1, hue:96, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSwqYAs98Q-pvUERC9NlgokR_tn5vTfEf0dGCPMOVmGUw&s=10", open:10.75, close:22,
+   curve:[0,0,0,0,0,0,0,0,0,0,24,72,94,68,46,42,62,80,72,48,26,8,0,0],
+   menu:[["Build your own",[["Burrito","Rice, beans, protein, salsa","10.45"],["Burrito bowl","No tortilla","10.45"],["Quesadilla","Three fillings","11.25"]]],["Sides",[["Chips & queso","","4.95"],["Guacamole","","2.95"]]]]},
+  {name:"Five Guys West Broad", cat:"Fast food", area:"Short Pump", rating:4.2, reviews:960, price:2, hue:340, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQT8pqet1rIyDHqRYoDuOTejDXwV7fMH2C2mEzOK5IuNA&s=10", open:11, close:22,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,58,84,62,42,40,58,78,74,52,28,10,0,0],
+   menu:[["Burgers",[["Cheeseburger","Two patties, free toppings","11.29"],["Little Bacon Burger","One patty","9.79"]]],["Fries",[["Cajun fries","Regular","5.29"],["Five Guys style","Regular","5.29"]]]]},
+  {name:"Panera Bread Innsbrook", cat:"Fast food", area:"Innsbrook", rating:4.1, reviews:1340, price:2, hue:44, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT2MejubpW0SDC3plr80QGQejMYBA1oFvtNSMOpBqkPaQ&s=10", open:6, close:21,
+   curve:[0,0,0,0,0,0,34,62,70,58,54,82,90,66,48,42,52,64,54,32,14,0,0,0],
+   menu:[["Sandwiches",[["Bacon Turkey Bravo","Tomato basil bread","11.99"],["Chipotle Chicken Avocado","Melted, on ciabatta","12.49"]]],["Soups",[["Broccoli cheddar","Bread bowl available","7.49"],["Ten vegetable","","6.99"]]],["Bakery",[["Cinnamon crunch bagel","","2.49"]]]]},
+  {name:"Shake Shack Short Pump", cat:"Fast food", area:"Short Pump", rating:4.3, reviews:820, price:2, hue:118, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcROSpndFErd34ZIvl3CZA1ovZvhfIzQogDyNdKCoOlktg&s=10", open:11, close:22,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,54,80,66,52,56,72,88,86,62,34,12,0,0],
+   menu:[["Burgers",[["ShackBurger","Single, ShackSauce","7.89"],["SmokeShack","Bacon, cherry peppers","10.29"]]],["Frozen custard",[["Concrete","Blended, mix-ins","6.29"],["Shake","Hand spun","6.09"]]]]},
+  {name:"Sheetz Broad Street", cat:"Fast food", area:"Glen Allen", rating:4.2, reviews:1460, price:1, hue:56, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSchzxXp7s8rgTb32mE8uFSEQF-x28P3blTC_-fgOI07qMSzDHsMaU75Sxg&s=10", open:0, close:24,
+   curve:[24,18,14,12,14,26,48,66,54,42,46,74,82,58,48,52,66,74,68,58,52,46,38,30],
+   menu:[["Made to order",[["Shmagel Burger","Bagel bun, egg, cheese","6.49"],["Chicken Strip Basket","With fries","8.29"]]],["MTO Drinks",[["Cold brew","Any size","3.29"],["Slushie","","2.49"]]]]},
+  {name:"Taco Bell Short Pump", cat:"Fast food", area:"Short Pump", rating:3.9, reviews:1120, price:1, hue:280, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSQXL5Ezx8XqbYQ1ARaiT0MkGO17e7Ge96C-UchKoWfXw&s", open:8, close:26,
+   curve:[58,38,18,0,0,0,0,0,22,32,44,76,84,60,46,50,64,78,74,62,58,64,72,68],
+   menu:[["Cravings",[["Crunchwrap Supreme","","5.49"],["Chalupa Supreme","","4.99"],["Bean burrito","","2.49"]]],["Boxes",[["Cravings Box","Four items, drink","7.99"]]]]},
+  {name:"Bojangles Glen Allen", cat:"Fast food", area:"Glen Allen", rating:4.0, reviews:740, price:1, hue:30, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRyyq3x_lFwFwFFj-oikeDqD8H3kH0GodgR0aWzf_sBCg&s=10", open:5.5, close:22,
+   curve:[0,0,0,0,0,42,72,86,74,52,44,72,80,56,42,44,58,70,62,40,20,6,0,0],
+   menu:[["Breakfast",[["Cajun Filet Biscuit","","5.29"],["Sausage biscuit","","3.19"]]],["Chicken",[["8pc Family Meal","Two sides, biscuits","24.99"],["Supremes combo","","9.49"]]],["Sides",[["Bo-Tato Rounds","","2.79"],["Dirty rice","","2.79"]]]]},
+  {name:"Lamplighter Roasting Co.", cat:"Coffee", area:"Scott's Addition", rating:4.6, reviews:1240, price:1, hue:28, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSUInsXhucZupeEFTQuHrHqYHlMzxIDeieV-jwsQ2301OEq9qKPFQi-54c&s=10", open:6.5, close:18,
+   curve:[0,0,0,0,0,0,18,42,71,78,66,58,54,49,44,36,24,12,4,0,0,0,0,0],
+   menu:[["Drinks",[["Cortado","Double shot, steamed milk","4.25"],["Cold brew","16oz, house blend","4.75"],["Chai latte","Spiced, oat milk available","5.50"]]],["Food",[["Avocado toast","Sourdough, chili flake, lemon","9.00"],["Breakfast sandwich","Egg, cheddar, brioche","7.50"]]]]},
+  {name:"Sub Rosa Bakery", cat:"Bakery", area:"Church Hill", rating:4.8, reviews:2110, price:2, hue:36, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSU6aYsBiNbnjJDP-0HDwLtrXd49dEWlKYZtCgIA8J21A&s=10", open:7, close:15,
+   curve:[0,0,0,0,0,0,22,58,84,92,74,55,38,26,14,6,0,0,0,0,0,0,0,0],
+   menu:[["Morning",[["Wood-fired croissant","Laminated, stone-milled flour","4.50"],["Cardamom bun","Toasted, sugar crust","5.00"],["Seasonal galette","Ask about today's fruit","6.25"]]],["Loaves",[["Country sourdough","Naturally leavened","8.00"],["Rye miche","Whole grain, dense crumb","9.50"]]]]},
+  {name:"ZZQ Texas Craft Barbeque", cat:"Barbecue", area:"Scott's Addition", rating:4.7, reviews:3480, price:2, hue:14, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQv6HrRfHvd2AVPms6b6HnUZFvFMDEafuQ-YfweE2IN4w&s=10", open:11, close:21,
+   curve:[0,0,0,0,0,0,0,0,0,0,34,76,95,88,62,44,52,74,81,56,22,0,0,0],
+   menu:[["By the pound",[["Brisket","Post oak smoked, 14 hours","32.00"],["Pork spare ribs","Dry rubbed","28.00"],["Jalapeño cheddar sausage","House made","24.00"]]],["Sides",[["Mac and cheese","Smoked gouda","6.00"],["Collards","Slow braised","5.50"]]]]},
+  {name:"The Veil Brewing Co.", cat:"Bars", area:"Scott's Addition", rating:4.5, reviews:1890, price:2, hue:48, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRnywYJxlBChEe5rLi8OCy07nH-FSXTyTXThkUD_xdXrA&s=10", open:12, close:23,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,18,34,42,50,62,78,88,92,86,70,44,18,0],
+   menu:[["On tap",[["Master Shredder","Hazy IPA, 6.8%","8.00"],["Crucial Taunt","DIPA, 8.2%","9.50"],["Never Never Land","Sour, mixed fermentation","10.00"]]],["To go",[["4-pack crowler","Rotating selection","22.00"]]]]},
+  {name:"Mama J's Kitchen", cat:"Southern", area:"Jackson Ward", rating:4.7, reviews:4260, price:2, hue:22, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQt6iD3TJrLvqUjVkxrXVz5qqGZHU8uYhRRI0mDCFwJsw&s=10", open:11, close:21,
+   curve:[0,0,0,0,0,0,0,0,12,32,58,82,90,68,52,48,62,80,86,64,34,12,0,0],
+   menu:[["Plates",[["Fried catfish","Cornmeal crust, two sides","18.00"],["Fried chicken","Quarter dark, two sides","16.50"],["Smothered pork chop","Onion gravy","17.00"]]],["Sides",[["Candied yams","","4.50"],["Mac and cheese","","4.50"],["Collard greens","Smoked turkey","4.50"]]]]},
+  {name:"Perly's Delicatessen", cat:"Deli", area:"Downtown", rating:4.6, reviews:2870, price:2, hue:8, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTw40L2s215NEe6ZcWxB2PvWnr1K01WCp3Yye3VlqDlBA&s=10", open:8, close:17,
+   curve:[0,0,0,0,0,0,0,24,46,58,72,88,94,71,48,30,18,10,0,0,0,0,0,0],
+   menu:[["Sandwiches",[["Pastrami on rye","House cured, mustard","16.00"],["Reuben","Kraut, swiss, russian","17.00"]]],["All day",[["Latkes","Sour cream, applesauce","9.00"],["Matzo ball soup","","8.00"]]]]},
+  {name:"Can Can Brasserie", cat:"Restaurants", area:"Carytown", rating:4.4, reviews:3020, price:3, hue:340, photo:null, open:7.5, close:22,
+   curve:[0,0,0,0,0,0,0,18,42,66,74,82,86,64,42,38,56,78,90,74,50,24,0,0],
+   menu:[["Brasserie",[["Steak frites","Hanger, herb butter","32.00"],["Moules marinière","White wine, shallot","24.00"],["Croque madame","Gruyère, fried egg","17.00"]]],["Raw bar",[["Oysters","Half dozen, mignonette","19.00"]]]]},
+  {name:"Soul Taco", cat:"Tacos", area:"Jackson Ward", rating:4.5, reviews:1560, price:2, hue:32, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQn76RQkoeMnDtEfzUEoXkP8lKg5DPr4lFGR9shMKHwQA&s=10", open:11, close:23,
+   curve:[0,0,0,0,0,0,0,0,0,0,22,54,68,46,34,38,60,78,84,70,52,30,10,0],
+   menu:[["Tacos",[["Fried chicken","Comeback sauce, slaw","6.00"],["Blackened catfish","Remoulade","6.50"],["Braised oxtail","Pickled onion","7.50"]]],["Sides",[["Elote","Cotija, lime","7.00"]]]]},
+  {name:"Stella's", cat:"Restaurants", area:"Near West End", rating:4.6, reviews:2640, price:3, hue:200, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTCdbl5ircy1XBomtxGaayCRxksPvrcqzdLsteQyXoU1A&s=10", open:11, close:22,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,44,62,38,22,26,58,84,96,78,48,18,0,0],
+   menu:[["Meze",[["Saganaki","Flamed kefalograviera","14.00"],["Taramosalata","Roe spread, pita","11.00"]]],["Mains",[["Lamb chops","Oregano, lemon","38.00"],["Whole branzino","Grilled, ladolemono","34.00"]]]]},
+  {name:"Nate's Bagels", cat:"Bakery", area:"Church Hill", rating:4.7, reviews:980, price:1, hue:40, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQjVZ2Ui-Cz1ZW5C_9vkEjRS6KOGpcgvlR172fPuMYnHw&s=10", open:6.5, close:14,
+   curve:[0,0,0,0,0,0,26,64,88,80,58,34,16,6,0,0,0,0,0,0,0,0,0,0],
+   menu:[["Bagels",[["Everything","Boiled and baked daily","2.25"],["Sesame","","2.25"]]],["Built",[["Lox platter","Cream cheese, capers, onion","14.00"],["Egg and cheese","Add bacon +2","6.50"]]]]},
+  {name:"The Roosevelt", cat:"Southern", area:"Church Hill", rating:4.6, reviews:1820, price:3, hue:18, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT6HkXt03vc-xlPfU55kvymJBnjwtfypGaTEpJx0KVa9A&s=10", open:16, close:23,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,38,66,84,78,56,28,6,0],
+   menu:[["Dinner",[["Shrimp and grits","Byrd Mill grits, tasso","28.00"],["Fried chicken","Half bird, honey butter","26.00"]]],["Bar",[["Seasonal cocktail","Ask your server","13.00"]]]]},
+  {name:"Alewife", cat:"Restaurants", area:"Church Hill", rating:4.7, reviews:1140, price:3, hue:190, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQlrKq_ovjlQbNSiRVa39Ls1KNNqrZB4KEqF_qf9y7CQQ&s=10", open:15, close:22,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,28,52,74,82,66,40,14,0,0],
+   menu:[["From the water",[["Whole roasted fish","Chesapeake catch, changes daily","36.00"],["Oyster stew","Cream, leek, dill","16.00"]]],["Land",[["Duck breast","Seasonal accompaniment","31.00"]]]]},
+  {name:"Blanchard's Coffee", cat:"Coffee", area:"The Fan", rating:4.5, reviews:870, price:1, hue:26, photo:null, open:6.5, close:18,
+   curve:[0,0,0,0,0,0,20,48,66,62,54,50,46,44,38,28,16,8,0,0,0,0,0,0],
+   menu:[["Espresso",[["Flat white","","4.75"],["Americano","","3.50"]]],["Brewed",[["Pour over","Single origin, rotating","5.00"],["Drip","Free refills","3.00"]]]]},
+  {name:"Ardent Craft Ales", cat:"Bars", area:"Scott's Addition", rating:4.5, reviews:1620, price:2, hue:52, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT6yN6icOLa_NqQiDNElbZ3rtxJjF_Jax4Od1_n4Y99xzP4pQrlbXGH_e8&s=10", open:12, close:23,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,14,28,38,46,58,72,84,80,68,52,30,10,0],
+   menu:[["Taproom",[["Ardent IPA","6.8%","7.00"],["Honey Ginger","5.2%","7.00"],["Pilsner","4.9%","6.50"]]],["Kitchen",[["Pretzel","Beer cheese","9.00"]]]]},
+  {name:"Brenner Pass", cat:"Restaurants", area:"Scott's Addition", rating:4.5, reviews:1330, price:3, hue:170, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQfTJsuruFTC5NqdKICvnpssEwgnu12NN2bveCJTZ4Khw&s=10", open:8, close:22,
+   curve:[0,0,0,0,0,0,0,0,16,38,44,52,58,40,28,32,54,76,88,72,46,20,0,0],
+   menu:[["Alpine",[["Raclette","Scraped tableside, potatoes","29.00"],["Fondue","Gruyère, kirsch","26.00"]]],["Plates",[["Rösti","Crisp potato, egg","15.00"]]]]},
+  {name:"Sabai", cat:"Restaurants", area:"The Fan", rating:4.4, reviews:1050, price:2, hue:120, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRuMLp4Ite3F5v6YM7iS75TW46XpSOyu9IwfkJ220yVZg&s=10", open:11, close:22,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,36,52,32,20,24,48,70,78,62,38,16,0,0],
+   menu:[["Curry",[["Massaman","Beef, potato, peanut","19.00"],["Green curry","Thai basil, bamboo","18.00"]]],["Noodles",[["Pad see ew","Wide rice noodle","17.00"]]]]},
+  {name:"Lunch / Supper", cat:"Southern", area:"Scott's Addition", rating:4.3, reviews:2240, price:2, hue:12, photo:null, open:8, close:22,
+   curve:[0,0,0,0,0,0,0,0,14,46,62,70,66,42,26,30,50,72,80,58,32,12,0,0],
+   menu:[["All day",[["Chicken and waffles","Hot honey","19.00"],["Meatloaf","Tomato glaze, two sides","18.00"]]],["Sides",[["Fried okra","","5.00"]]]]},
+  {name:"Crossroads Coffee", cat:"Coffee", area:"Forest Hill", rating:4.5, reviews:1410, price:1, hue:30, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTpWl5SlJm-Muvp0SxvHF-rjVCH5oHra1zmvbq9ccROsQ&s=10", open:6.5, close:18,
+   curve:[0,0,0,0,0,0,16,40,62,70,58,50,44,40,36,30,20,10,0,0,0,0,0,0],
+   menu:[["Coffee",[["Latte","","4.50"],["Mocha","House ganache","5.25"]]],["Pastry",[["Scone","Rotating flavor","3.75"]]]]}
+];
+
+const CATS = ["All","Fast food","Coffee","Bakery","Restaurants","Bars","Southern","Barbecue","Tacos","Deli"];
+const AREAS = [...new Set(V.map(v=>v.area))].sort();
+const LABEL = {quiet:"Not busy", moderate:"Steady", packed:"Packed"};
+const WAITS = {quiet:"Walk right in", moderate:"Short wait", packed:"Expect a wait"};
+const PRICE = {1:"$",2:"$$",3:"$$$"};
+
+/* ---------- filter state ---------- */
+const F = {cat:"All", busy:[], price:[], area:[], rating:0, showClosed:true, openOnly:false};
+let draft = null;
+
+/* ---------- time helpers ---------- */
+function nowH(){const d=new Date();return d.getHours()+d.getMinutes()/60;}
+function isOpen(v,t=nowH()){
+  if(v.close>24) return t>=v.open || t<(v.close-24);
+  return t>=v.open && t<v.close;
+}
+function fmt(h){
+  h=((h%24)+24)%24;
+  const hr=Math.floor(h), m=Math.round((h-hr)*60);
+  const ap=hr<12?"AM":"PM"; let d=hr%12; if(d===0)d=12;
+  return m?`${d}:${String(m).padStart(2,"0")} ${ap}`:`${d} ${ap}`;
+}
+function opensIn(v){
+  const t=nowH();
+  let diff = v.open - t; if(diff<0) diff+=24;
+  if(diff<1) return `Opens in ${Math.round(diff*60)} min`;
+  if(diff<6) return `Opens at ${fmt(v.open)}`;
+  return `Opens ${fmt(v.open)} tomorrow`;
+}
+/* typical busy window on reopen — reads from the venue's own curve */
+function peakWindow(v){
+  let best=-1,bi=0;
+  v.curve.forEach((p,i)=>{if(p>best){best=p;bi=i;}});
+  let s=bi,e=bi;
+  while(s>0 && v.curve[s-1]>best*0.7) s--;
+  while(e<23 && v.curve[e+1]>best*0.7) e++;
+  return `Usually busiest ${fmt(s)}–${fmt(e+1)}`;
+}
+
+/* ---------- scoring ---------- */
+const reports={}, TTL=45*60*1000;
+function band(x){return x<35?"quiet":x<68?"moderate":"packed";}
+function score(v){
+  const d=new Date(),h=d.getHours(),f=d.getMinutes()/60;
+  const a=v.curve[h],b=v.curve[(h+1)%24];
+  let val=a+(b-a)*f, src="Based on typical patterns";
+  const r=reports[v.name];
+  if(r&&Date.now()-r.at<TTL){
+    const tg={quiet:20,moderate:50,packed:85}[r.level];
+    const w=.85*(1-(Date.now()-r.at)/TTL);
+    val=val*(1-w)+tg*w;
+    src=r.count+(r.count===1?" person":" people")+" reported this "+ago(r.at);
+  }
+  val=Math.max(0,Math.min(100,Math.round(val)));
+  return {val,band:band(val),src};
+}
+function ago(t){const m=Math.round((Date.now()-t)/60000);return m<1?"just now":m+" min ago";}
+function ph(v){const a=v.hue,b=(v.hue+26)%360;
+  return `<div class="ph" style="background:linear-gradient(135deg,hsl(${a} 42% 76%),hsl(${b} 38% 62%) 58%,hsl(${a} 34% 48%))"></div>`;}
+function photoBlock(v){
+  if(!v.photo) return ph(v);
+  /* gradient sits underneath; if the image 404s or is blocked, it just shows through */
+  return ph(v) + `<img src="${v.photo}" alt="" loading="lazy" onerror="this.remove()">`;
+}
+
+/* ---------- filtering ---------- */
+function activeCount(){
+  return F.busy.length + F.price.length + F.area.length + (F.rating?1:0) + (F.openOnly?1:0) + (F.showClosed?0:1);
+}
+function apply(){
+  return V.map(v=>({v,s:score(v),open:isOpen(v)}))
+    .filter(x=>{
+      if(F.cat!=="All" && x.v.cat!==F.cat) return false;
+      if(F.price.length && !F.price.includes(x.v.price)) return false;
+      if(F.area.length && !F.area.includes(x.v.area)) return false;
+      if(F.rating && x.v.rating < F.rating) return false;
+      if(F.openOnly && !x.open) return false;
+      if(!F.showClosed && !x.open) return false;
+      if(F.busy.length){ if(!x.open) return false; if(!F.busy.includes(x.s.band)) return false; }
+      return true;
+    })
+    .sort((a,b)=> (b.open-a.open) || (b.s.val-a.s.val));
+}
+
+/* ---------- rail ---------- */
+function rail(){
+  const n=activeCount();
+  document.getElementById("rail").innerHTML =
+    `<button class="chip filters" id="openFilters" data-active="${n>0}">
+       <svg viewBox="0 0 24 24"><path d="M3 5h18v2l-7 7v6l-4-2v-4L3 7z"/></svg>Filters${n?`<span class="badge">${n}</span>`:""}
+     </button>` +
+    CATS.map(c=>`<button class="chip" data-c="${c}" aria-pressed="${c===F.cat}">${c}</button>`).join("");
+}
+
+/* ---------- feed ---------- */
+function feed(){
+  const list=apply();
+  const open=list.filter(x=>x.open), shut=list.filter(x=>!x.open);
+  document.getElementById("secTitle").textContent = F.cat==="All"?"Near you":F.cat;
+  document.getElementById("secCnt").textContent =
+    `${open.length} open · ${new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}`;
+
+  const card = ({v,s,open}) => `
+    <button class="card ${open?"":"shut"}" data-open="${v.name}">
+      <div class="photo">${photoBlock(v)}
+        <span class="fav"><svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.9-9.3-9A5 5 0 0 1 12 6.2 5 5 0 0 1 21.3 12c-1.8 4.1-9.3 9-9.3 9z"/></svg></span>
+        ${open
+          ? `<span class="pill"><span class="dot" style="background:var(--${s.band})"></span>${LABEL[s.band]}<span class="sub">${s.val}%</span></span>`
+          : `<span class="pill shut">Closed</span>`}
+      </div>
+      <div class="info">
+        <div class="row1"><span class="title">${v.name}</span>
+          <span class="rating"><svg viewBox="0 0 24 24"><path d="M12 2l3 6.6 7 .9-5 5 1.2 7-6.2-3.4L5.8 21.5 7 14.5l-5-5 7-.9z"/></svg>${v.rating}<span style="opacity:.6">(${(v.reviews/1000).toFixed(1)}k)</span></span>
+        </div>
+        <div class="row2">${v.cat}<span class="sep">·</span>${PRICE[v.price]}<span class="sep">·</span>${v.area}</div>
+        ${open
+          ? `<div class="wait" style="color:var(--${s.band})">${WAITS[s.band]}</div>`
+          : `<div class="shutline"><b>${opensIn(v)}</b><br>${peakWindow(v)}</div>`}
+      </div>
+    </button>`;
+
+  const el=document.getElementById("feed");
+  if(!list.length){
+    el.innerHTML=`<div class="empty">Nothing matches these filters.<br><button id="clearInline">Clear filters</button></div>`;
+    document.getElementById("clearInline").onclick=()=>{clear();rail();feed();};
+    return;
+  }
+  el.innerHTML = open.map(card).join("")
+    + (shut.length && !F.openOnly ? `<div class="divider">Closed right now</div>` + shut.map(card).join("") : "");
+}
+
+/* ---------- filter panel ---------- */
+function clear(){F.busy=[];F.price=[];F.area=[];F.rating=0;F.openOnly=false;F.showClosed=true;}
+
+function panelBody(){
+  const d=draft;
+  const tog=(arr,val)=>arr.includes(val);
+  document.getElementById("pbody").innerHTML=`
+    <div class="grp"><h3>How busy</h3><div class="opts">
+      ${["quiet","moderate","packed"].map(b=>
+        `<button class="opt" data-t="busy" data-v="${b}" aria-pressed="${tog(d.busy,b)}"><span class="dot" style="background:var(--${b})"></span>${LABEL[b]}</button>`).join("")}
+    </div></div>
+
+    <div class="grp"><h3>Price</h3><div class="opts">
+      ${[1,2,3].map(p=>`<button class="opt" data-t="price" data-v="${p}" aria-pressed="${tog(d.price,p)}">${PRICE[p]}</button>`).join("")}
+    </div></div>
+
+    <div class="grp"><h3>Rating</h3><div class="opts">
+      ${[4.0,4.5,4.7].map(r=>`<button class="opt" data-t="rating" data-v="${r}" aria-pressed="${d.rating===r}">★ ${r.toFixed(1)}+</button>`).join("")}
+    </div></div>
+
+    <div class="grp"><h3>Neighborhood</h3><div class="opts">
+      ${AREAS.map(a=>`<button class="opt" data-t="area" data-v="${a}" aria-pressed="${tog(d.area,a)}">${a}</button>`).join("")}
+    </div></div>
+
+    <div class="grp">
+      <div class="toggle"><span>Open now only<small>Hide everything that's closed</small></span>
+        <button class="sw" data-t="openOnly" aria-pressed="${d.openOnly}" aria-label="Open now only"></button></div>
+      <div class="toggle"><span>Show closed places<small>Listed below with opening times</small></span>
+        <button class="sw" data-t="showClosed" aria-pressed="${d.showClosed}" aria-label="Show closed places"></button></div>
+    </div>`;
+  const n=draft.busy.length+draft.price.length+draft.area.length+(draft.rating?1:0)+(draft.openOnly?1:0)+(draft.showClosed?0:1);
+  const saved=JSON.parse(JSON.stringify(F)); Object.assign(F,draft);
+  const c=apply().length; Object.assign(F,saved);
+  document.getElementById("applyBtn").textContent = c?`Show ${c} place${c===1?"":"s"}`:"No matches";
+}
+
+function openPanel(){draft=JSON.parse(JSON.stringify(F));panelBody();document.getElementById("panel").classList.add("on");document.body.style.overflow="hidden";}
+function closePanel(){document.getElementById("panel").classList.remove("on");document.body.style.overflow="";}
+
+document.getElementById("panel").addEventListener("click",e=>{
+  if(e.target.closest("[data-close-panel]")) return closePanel();
+  const b=e.target.closest("[data-t]"); if(!b) return;
+  const t=b.dataset.t;
+  if(t==="busy"||t==="area"){const a=draft[t],x=b.dataset.v;const i=a.indexOf(x);i<0?a.push(x):a.splice(i,1);}
+  else if(t==="price"){const a=draft.price,x=+b.dataset.v;const i=a.indexOf(x);i<0?a.push(x):a.splice(i,1);}
+  else if(t==="rating"){const x=+b.dataset.v;draft.rating = draft.rating===x?0:x;}
+  else if(t==="openOnly"){draft.openOnly=!draft.openOnly; if(draft.openOnly) draft.showClosed=false;}
+  else if(t==="showClosed"){draft.showClosed=!draft.showClosed; if(draft.showClosed) draft.openOnly=false;}
+  panelBody();
+});
+document.getElementById("applyBtn").onclick=()=>{Object.assign(F,draft);closePanel();rail();feed();};
+document.getElementById("clearAll").onclick=()=>{draft={cat:draft.cat,busy:[],price:[],area:[],rating:0,showClosed:true,openOnly:false};panelBody();};
+
+/* ---------- detail ---------- */
+function openDetail(name){
+  const v=V.find(x=>x.name===name); if(!v) return;
+  const s=score(v), op=isOpen(v), h=new Date().getHours();
+  const bars=v.curve.map((p,i)=>`<i class="${p>0?"on":""} ${i===h?"now":""}" style="height:${Math.max(3,p*.34)}px"></i>`).join("");
+  const d=document.getElementById("detail");
+  d.innerHTML=`
+    <div class="hero ${op?"":"shut"}">${photoBlock(v)}
+      <button class="back" id="back" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button></div>
+    <div class="dhead">
+      <h1>${v.name}</h1>
+      <div class="dmeta">★ ${v.rating} (${v.reviews.toLocaleString()}) · ${v.cat} · ${PRICE[v.price]} · ${v.area}</div>
+      <div class="status" style="color:var(--${op?s.band:"text-2"})">
+        <div>
+          <div class="big">${op?`${LABEL[s.band]} — ${s.val}% of peak`:"Closed right now"}</div>
+          <div class="note">${op?s.src:`${opensIn(v)} · ${peakWindow(v)}`}</div>
+        </div>
+        <div class="bars">${bars}</div>
+      </div>
+      <div class="hours">Hours today: <b>${fmt(v.open)} – ${fmt(v.close)}</b></div>
+    </div>
+    <div class="actions">
+      <button class="btn primary" id="book">Reserve a table</button>
+      <button class="btn" data-report="${v.name}" ${op?"":"disabled"}>${op?"I'm here now":"Closed"}</button>
+    </div>
+    <div class="menu">${v.menu.map(([sec,items])=>`<h3>${sec}</h3>`+items.map(([n,ds,p])=>`
+      <div class="item"><div class="t"><div class="n">${n}</div>${ds?`<div class="d">${ds}</div>`:""}<div class="p">$${p}</div></div>
+      <div class="thumb">${ph(v)}</div></div>`).join("")).join("")}</div>`;
+  d.classList.add("on"); document.body.style.overflow="hidden"; d.scrollTop=0;
+  document.getElementById("back").onclick=closeDetail;
+  document.getElementById("book").onclick=()=>alert("Booking connects once the OpenTable partner integration is approved.");
+}
+function closeDetail(){document.getElementById("detail").classList.remove("on");document.body.style.overflow="";}
+
+/* ---------- report ---------- */
+const scrim=document.getElementById("scrim");
+const OPTS=[["quiet","Not busy","Seats available"],["moderate","Steady","Filling up"],["packed","Packed","There's a wait"]];
+let target=null;
+function openSheet(n){target=n;
+  document.getElementById("sheet").innerHTML=`<h2>How busy is it?</h2><p class="s">At ${n} — what does it look like right now?</p>
+    <div class="ropts">${OPTS.map(([k,t,dd])=>`<button data-k="${k}"><span class="dot" style="background:var(--${k})"></span>${t}<small>${dd}</small></button>`).join("")}</div>
+    <button class="cancel" data-close>Not right now</button>`;
+  scrim.classList.add("on");}
+function closeSheet(){scrim.classList.remove("on");target=null;}
+scrim.addEventListener("click",e=>{
+  if(e.target===scrim||e.target.hasAttribute("data-close")) return closeSheet();
+  const b=e.target.closest("button[data-k]"); if(!b||!target) return;
+  const p=reports[target], fresh=p&&Date.now()-p.at<TTL;
+  reports[target]={level:b.dataset.k,at:Date.now(),count:fresh&&p.level===b.dataset.k?p.count+1:1};
+  const r=reports[target], t=target;
+  document.getElementById("sheet").innerHTML=`<h2>Thanks</h2><p class="s">That updates ${t} for everyone looking right now.</p>
+    <div class="conf">Now showing <b style="color:var(--${r.level})">${LABEL[r.level]}</b>
+      <div class="n">${r.count} ${r.count===1?"person has":"people have"} said this in the last 45 minutes</div></div>
+    <button class="cancel" data-close>Close</button>`;
+  feed();
+  const dt=document.getElementById("detail");
+  if(dt.classList.contains("on")){const sc=dt.scrollTop;openDetail(t);dt.scrollTop=sc;}
+});
+
+/* ---------- events ---------- */
+document.getElementById("rail").addEventListener("click",e=>{
+  if(e.target.closest("#openFilters")) return openPanel();
+  const b=e.target.closest(".chip[data-c]"); if(!b) return;
+  F.cat=b.dataset.c; rail(); feed();
+});
+document.getElementById("feed").addEventListener("click",e=>{
+  const c=e.target.closest("[data-open]"); if(c) openDetail(c.dataset.open);
+});
+document.getElementById("detail").addEventListener("click",e=>{
+  const r=e.target.closest("[data-report]"); if(r&&!r.disabled) openSheet(r.dataset.report);
+});
+document.addEventListener("keydown",e=>{
+  if(e.key!=="Escape")return;
+  if(scrim.classList.contains("on"))closeSheet();
+  else if(document.getElementById("panel").classList.contains("on"))closePanel();
+  else closeDetail();
+});
+
+document.getElementById('themeBtn').onclick=()=>{ manual = isDark()?'light':'dark'; paintTheme(); };
+
+rail(); feed(); paintTheme();
+setInterval(()=>{if(!scrim.classList.contains("on")&&!document.getElementById("panel").classList.contains("on"))feed();},60000);
+</script>
+</body>
+</html>
