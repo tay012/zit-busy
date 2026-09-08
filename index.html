@@ -5,6 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
 <title>Right Now RVA</title>
+<meta name="description" content="See how busy Richmond restaurants, bars and coffee shops are right now.">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Right Now">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Right Now RVA">
+<meta property="og:description" content="See how busy Richmond restaurants, bars and coffee shops are right now.">
+<meta property="og:image" content="icon-512.png">
+<meta name="twitter:card" content="summary">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -36,12 +48,15 @@
   .bar{position:sticky;top:0;z-index:30;background:var(--bg);padding:12px 16px 10px;border-bottom:1px solid var(--line);}
   .loc{display:flex;align-items:center;gap:6px;font-size:15px;font-weight:700;}
   .loc svg{width:16px;height:16px;fill:var(--brand);}
-  .loc .chev{margin-left:2px;opacity:.45;}
   .theme{margin-left:auto;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);
     background:var(--bg-2);display:grid;place-items:center;padding:0;flex-shrink:0;}
   .theme svg{width:17px;height:17px;fill:var(--text);}
   .search{margin-top:10px;background:var(--bg-2);border-radius:999px;display:flex;align-items:center;gap:9px;padding:11px 15px;color:var(--text-2);font-size:14.5px;}
   .search svg{width:16px;height:16px;fill:var(--text-2);flex-shrink:0;}
+  .search input{flex:1;min-width:0;border:0;background:none;padding:0;font-family:inherit;font-size:14.5px;color:var(--text);}
+  .search input::placeholder{color:var(--text-2);opacity:1;}
+  .search input:focus{outline:none;}
+  .search:focus-within{outline:2px solid var(--brand);outline-offset:2px;}
 
   /* ---------- rail ---------- */
   .rail{display:flex;gap:8px;overflow-x:auto;padding:12px 16px;scrollbar-width:none;}
@@ -64,6 +79,7 @@
   .feed{padding:8px 16px 90px;display:grid;gap:22px;}
   .divider{display:flex;align-items:center;gap:11px;color:var(--text-2);font-size:13px;font-weight:600;margin-top:6px;}
   .divider::after{content:"";flex:1;height:1px;background:var(--line);}
+  .cardwrap{position:relative;}
   .card{display:block;width:100%;text-align:left;background:none;border:0;padding:0;}
   .photo{position:relative;width:100%;aspect-ratio:16/10;border-radius:12px;overflow:hidden;background:var(--bg-2);}
   .photo .ph{position:absolute;inset:0;}
@@ -75,6 +91,8 @@
   .pill.shut{background:rgba(12,14,17,.92);color:#fff;}
   .fav{position:absolute;right:10px;top:10px;width:32px;height:32px;border-radius:50%;background:var(--pill-bg);border:0;display:grid;place-items:center;}
   .fav svg{width:16px;height:16px;fill:none;stroke:var(--pill-fg);stroke-width:2;}
+  .fav[aria-pressed="true"] svg{fill:var(--packed);stroke:var(--packed);}
+  .fav:active{transform:scale(.88);}
 
   .info{padding-top:10px;}
   .row1{display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
@@ -150,6 +168,7 @@
   .btn{border-radius:11px;padding:14px;font-size:14.5px;font-weight:700;border:1px solid var(--line);background:var(--bg);color:var(--text);}
   .btn.primary{background:var(--brand);color:#fff;border-color:var(--brand);}
   .btn[disabled]{opacity:.45;cursor:default;}
+  .btn[aria-pressed="true"]{border-color:var(--packed);color:var(--packed);}
   .menu{padding:0 16px 40px;}
   .menu h3{font-size:17px;font-weight:800;letter-spacing:-.015em;padding:20px 0 4px;position:sticky;top:0;background:var(--bg);}
   .item{display:flex;gap:13px;padding:14px 0;border-bottom:1px solid var(--line);align-items:flex-start;}
@@ -181,12 +200,12 @@
   <div class="bar">
     <div class="loc">
       <svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>
-      <span>Richmond, VA</span><span class="chev">▾</span>
+      <span>Richmond, VA</span>
       <button class="theme" id="themeBtn" aria-label="Switch theme"></button>
     </div>
     <div class="search">
       <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg>
-      Search restaurants, bars, coffee
+      <input id="q" type="search" autocomplete="off" placeholder="Search restaurants, bars, coffee" aria-label="Search places">
     </div>
   </div>
 
@@ -241,135 +260,246 @@ if(window.matchMedia){
    Overnight venues wrap past 24 (e.g. close: 26 = 2am).
    ================================================================= */
 const V = [
-  {name:"The Boathouse at Sunday Park", cat:"Restaurants", area:"Short Pump", rating:4.4, reviews:2140, price:3, hue:198, photo:null, open:11, close:22,
+  {name:"The Boathouse at Sunday Park", cat:"Restaurants", area:"Short Pump", rating:4.4, reviews:2140, price:3, hue:244, photo:null, open:11, close:22,
    curve:[0,0,0,0,0,0,0,0,0,0,0,42,64,48,34,38,58,80,88,72,46,18,0,0],
    menu:[["From the water",[["Crab cakes","Jumbo lump, remoulade","34.00"],["Rockfish","Seasonal preparation","32.00"],["Shrimp and grits","Andouille, tasso cream","27.00"]]],["Land",[["Filet mignon","8oz, bordelaise","42.00"],["Chicken Chesapeake","Crab, hollandaise","29.00"]]]]},
-  {name:"Kabuto Japanese Steakhouse", cat:"Restaurants", area:"Short Pump", rating:4.3, reviews:1680, price:2, hue:352, photo:null, open:11.5, close:22,
+  {name:"Kabuto Japanese Steakhouse", cat:"Restaurants", area:"Short Pump", rating:4.3, reviews:1680, price:2, hue:349, photo:null, open:11.5, close:22,
    curve:[0,0,0,0,0,0,0,0,0,0,0,38,56,34,22,28,54,82,90,74,48,20,0,0],
    menu:[["Hibachi",[["Hibachi chicken","Fried rice, vegetables, soup","22.00"],["Hibachi steak & shrimp","Combination","31.00"],["Filet mignon hibachi","","34.00"]]],["Sushi",[["Volcano roll","Baked scallop, spicy mayo","14.00"],["Rainbow roll","Assorted sashimi","15.00"]]]]},
-  {name:"Casa Del Barco Short Pump", cat:"Tacos", area:"Short Pump", rating:4.2, reviews:1420, price:2, hue:24, photo:null, open:11, close:23,
+  {name:"Casa Del Barco Short Pump", cat:"Tacos", area:"Short Pump", rating:4.2, reviews:1420, price:2, hue:48, photo:null, open:11, close:23,
    curve:[0,0,0,0,0,0,0,0,0,0,0,52,70,50,38,44,66,84,86,72,54,32,10,0],
    menu:[["Tacos",[["Al pastor","Pineapple, cilantro, onion","5.50"],["Baja fish","Beer battered, slaw","6.00"],["Carne asada","","6.00"]]],["Plates",[["Enchiladas","Choice of sauce","19.00"],["Fajitas","Steak or chicken, sizzling","24.00"]]],["Bar",[["House margarita","On the rocks","11.00"]]]]},
-  {name:"Bonefish Grill Short Pump", cat:"Restaurants", area:"Short Pump", rating:4.1, reviews:1290, price:2, hue:186, photo:null, open:11, close:22,
+  {name:"Bonefish Grill Short Pump", cat:"Restaurants", area:"Short Pump", rating:4.1, reviews:1290, price:2, hue:233, photo:null, open:11, close:22,
    curve:[0,0,0,0,0,0,0,0,0,0,0,40,58,40,26,32,56,78,82,64,40,16,0,0],
    menu:[["Grill",[["Bang Bang Shrimp","Crispy, spicy cream sauce","12.90"],["Chilean sea bass","Wood grilled","36.00"],["Atlantic salmon","Choice of sauce","25.00"]]],["Sides",[["Garlic whipped potatoes","","5.00"]]]]},
-  {name:"Sedona Taphouse", cat:"Bars", area:"Short Pump", rating:4.3, reviews:1110, price:2, hue:38, photo:null, open:11, close:23,
+  {name:"Sedona Taphouse", cat:"Bars", area:"Short Pump", rating:4.3, reviews:1110, price:2, hue:85, photo:null, open:11, close:23,
    curve:[0,0,0,0,0,0,0,0,0,0,0,44,60,44,36,46,70,86,84,70,52,28,8,0],
    menu:[["Taps",[["Rotating craft draft","50+ on tap","7.00"],["Flight","Four 5oz pours","12.00"]]],["Kitchen",[["Steak frites","Hand cut","28.00"],["Taphouse burger","Aged cheddar, bacon jam","17.00"]]]]},
-  {name:"Tazza Kitchen Short Pump", cat:"Restaurants", area:"Short Pump", rating:4.4, reviews:980, price:2, hue:104, photo:null, open:11, close:22,
+  {name:"Tazza Kitchen Short Pump", cat:"Restaurants", area:"Short Pump", rating:4.4, reviews:980, price:2, hue:164, photo:null, open:11, close:22,
    curve:[0,0,0,0,0,0,0,0,0,0,0,48,66,44,30,36,58,80,84,66,42,16,0,0],
    menu:[["Wood fired",[["Margherita pizza","San Marzano, basil","16.00"],["Wood roasted chicken","Half bird, seasonal sides","24.00"]]],["Starters",[["Cornbread","Honey butter, cast iron","8.00"],["Charred octopus","","16.00"]]]]},
-  {name:"Fat Dragon Short Pump", cat:"Restaurants", area:"Short Pump", rating:4.2, reviews:760, price:2, hue:8, photo:null, open:11.5, close:22,
+  {name:"Fat Dragon Short Pump", cat:"Restaurants", area:"Short Pump", rating:4.2, reviews:760, price:2, hue:11, photo:null, open:11.5, close:22,
    curve:[0,0,0,0,0,0,0,0,0,0,0,36,54,32,20,26,50,74,80,62,38,14,0,0],
    menu:[["Wok",[["General Tso's","Crispy chicken, house sauce","18.00"],["Dan dan noodles","Sichuan pork, chili oil","16.00"]]],["Dim sum",[["Pork soup dumplings","Six pieces","13.00"],["Scallion pancake","","9.00"]]]]},
-  {name:"Pearl Raw Bar", cat:"Restaurants", area:"Short Pump", rating:4.5, reviews:640, price:3, hue:172, photo:null, open:16, close:23,
+  {name:"Pearl Raw Bar", cat:"Restaurants", area:"Short Pump", rating:4.5, reviews:640, price:3, hue:222, photo:null, open:16, close:23,
    curve:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,34,62,82,78,58,30,8,0],
    menu:[["Raw",[["Oysters","Half dozen, East and West coast","20.00"],["Tuna crudo","Citrus, chili","17.00"]]],["Plates",[["Lobster roll","Warm butter, brioche","28.00"],["Scallops","Seared, seasonal","32.00"]]]]},
-  {name:"Starbucks Short Pump Town Center", cat:"Coffee", area:"Short Pump", rating:4.0, reviews:890, price:1, hue:150, photo:null, open:5.5, close:21,
+  {name:"Starbucks Short Pump Town Center", cat:"Coffee", area:"Short Pump", rating:4.0, reviews:890, price:1, hue:201, photo:null, open:5.5, close:21,
    curve:[0,0,0,0,0,44,72,88,82,64,56,58,54,48,44,42,36,26,14,6,0,0,0,0],
    menu:[["Espresso",[["Caffè latte","Grande","5.25"],["Caramel macchiato","Grande","6.15"]]],["Cold",[["Cold brew","Grande","4.75"],["Refresher","Assorted flavors","5.45"]]],["Food",[["Egg bites","Two, sous vide","5.45"]]]]},
-  {name:"Sweet Frog Short Pump", cat:"Bakery", area:"Short Pump", rating:4.2, reviews:520, price:1, hue:322, photo:null, open:12, close:22,
+  {name:"Sweet Frog Short Pump", cat:"Sweets", area:"Short Pump", rating:4.2, reviews:520, price:1, hue:323, photo:null, open:12, close:22,
    curve:[0,0,0,0,0,0,0,0,0,0,0,0,18,30,42,54,62,74,86,80,58,30,0,0],
    menu:[["Self serve",[["Frozen yogurt","Priced by weight, per oz","0.62"]]],["Toppings",[["Fresh fruit","Included by weight","0.00"],["Candy and cereal","Included by weight","0.00"]]]]},
-  {name:"Chick-fil-A Short Pump", cat:"Fast food", area:"Short Pump", rating:4.5, reviews:2380, price:1, hue:6, photo:"https://dynamic-media-cdn.tripadvisor.com/media/photo-o/1b/59/f9/79/order-delivery-through.jpg?w=900&h=500&s=1", open:6.5, close:22,
+  {name:"Chick-fil-A Short Pump", cat:"Fast food", area:"Short Pump", rating:4.5, reviews:2380, price:1, hue:5, photo:"https://dynamic-media-cdn.tripadvisor.com/media/photo-o/1b/59/f9/79/order-delivery-through.jpg?w=900&h=500&s=1", open:6.5, close:22,
    curve:[0,0,0,0,0,0,28,52,44,38,56,88,96,72,54,58,74,86,78,54,30,12,0,0],
    menu:[["Chicken",[["Chick-fil-A Sandwich","Pressure cooked, pickles","5.99"],["Spicy Deluxe","Pepper jack, lettuce, tomato","7.49"],["8ct Nuggets","","5.79"]]],["Sides",[["Waffle fries","Medium","2.99"],["Mac & cheese","","4.19"]]],["Drinks",[["Sweet tea","Large","2.49"],["Frosted lemonade","","4.99"]]]]},
-  {name:"Cook Out", cat:"Fast food", area:"Short Pump", rating:4.3, reviews:1920, price:1, hue:352, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRBvNtXnLrHw31mdZjJT3sZHcD-dckT4fEoyyGKAic67Q&s=10", open:10.5, close:27,
+  {name:"Cook Out", cat:"Fast food", area:"Short Pump", rating:4.3, reviews:1920, price:1, hue:275, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRBvNtXnLrHw31mdZjJT3sZHcD-dckT4fEoyyGKAic67Q&s=10", open:10.5, close:27,
    curve:[62,44,26,10,0,0,0,0,0,0,32,74,82,58,44,48,66,84,88,80,72,68,74,70],
    menu:[["Trays",[["Cook Out Tray","Entrée, two sides, drink","7.29"],["BBQ Tray","Chopped pork","7.99"]]],["Burgers",[["Big Double Burger","","4.49"],["Cajun Chicken","","4.29"]]],["Shakes",[["Milkshake","40+ flavors","3.79"]]]]},
-  {name:"Raising Cane's", cat:"Fast food", area:"Short Pump", rating:4.4, reviews:1540, price:1, hue:20, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3WuQCXl3fSaUC2xTMGufUnqHbFcO5H6yUp_UHOtRXTw&s=10", open:10, close:25,
+  {name:"Raising Cane's", cat:"Fast food", area:"Short Pump", rating:4.4, reviews:1540, price:1, hue:37, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3WuQCXl3fSaUC2xTMGufUnqHbFcO5H6yUp_UHOtRXTw&s=10", open:10, close:25,
    curve:[48,22,0,0,0,0,0,0,0,0,30,78,90,64,48,52,70,88,84,66,52,40,58,54],
    menu:[["Combos",[["Box Combo","4 tenders, fries, toast, slaw","11.29"],["3 Finger Combo","","9.49"]]],["Extras",[["Cane's Sauce","","0.50"],["Texas Toast","","1.29"]]]]},
-  {name:"Chipotle Short Pump", cat:"Fast food", area:"Short Pump", rating:4.0, reviews:1180, price:1, hue:96, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSwqYAs98Q-pvUERC9NlgokR_tn5vTfEf0dGCPMOVmGUw&s=10", open:10.75, close:22,
+  {name:"Chipotle Short Pump", cat:"Fast food", area:"Short Pump", rating:4.0, reviews:1180, price:1, hue:154, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSwqYAs98Q-pvUERC9NlgokR_tn5vTfEf0dGCPMOVmGUw&s=10", open:10.75, close:22,
    curve:[0,0,0,0,0,0,0,0,0,0,24,72,94,68,46,42,62,80,72,48,26,8,0,0],
    menu:[["Build your own",[["Burrito","Rice, beans, protein, salsa","10.45"],["Burrito bowl","No tortilla","10.45"],["Quesadilla","Three fillings","11.25"]]],["Sides",[["Chips & queso","","4.95"],["Guacamole","","2.95"]]]]},
-  {name:"Five Guys West Broad", cat:"Fast food", area:"Short Pump", rating:4.2, reviews:960, price:2, hue:340, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQT8pqet1rIyDHqRYoDuOTejDXwV7fMH2C2mEzOK5IuNA&s=10", open:11, close:22,
+  {name:"Five Guys West Broad", cat:"Fast food", area:"Short Pump", rating:4.2, reviews:960, price:2, hue:334, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQT8pqet1rIyDHqRYoDuOTejDXwV7fMH2C2mEzOK5IuNA&s=10", open:11, close:22,
    curve:[0,0,0,0,0,0,0,0,0,0,0,58,84,62,42,40,58,78,74,52,28,10,0,0],
    menu:[["Burgers",[["Cheeseburger","Two patties, free toppings","11.29"],["Little Bacon Burger","One patty","9.79"]]],["Fries",[["Cajun fries","Regular","5.29"],["Five Guys style","Regular","5.29"]]]]},
-  {name:"Panera Bread Innsbrook", cat:"Fast food", area:"Innsbrook", rating:4.1, reviews:1340, price:2, hue:44, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT2MejubpW0SDC3plr80QGQejMYBA1oFvtNSMOpBqkPaQ&s=10", open:6, close:21,
+  {name:"Panera Bread Innsbrook", cat:"Fast food", area:"Innsbrook", rating:4.1, reviews:1340, price:2, hue:101, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT2MejubpW0SDC3plr80QGQejMYBA1oFvtNSMOpBqkPaQ&s=10", open:6, close:21,
    curve:[0,0,0,0,0,0,34,62,70,58,54,82,90,66,48,42,52,64,54,32,14,0,0,0],
    menu:[["Sandwiches",[["Bacon Turkey Bravo","Tomato basil bread","11.99"],["Chipotle Chicken Avocado","Melted, on ciabatta","12.49"]]],["Soups",[["Broccoli cheddar","Bread bowl available","7.49"],["Ten vegetable","","6.99"]]],["Bakery",[["Cinnamon crunch bagel","","2.49"]]]]},
-  {name:"Shake Shack Short Pump", cat:"Fast food", area:"Short Pump", rating:4.3, reviews:820, price:2, hue:118, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcROSpndFErd34ZIvl3CZA1ovZvhfIzQogDyNdKCoOlktg&s=10", open:11, close:22,
+  {name:"Shake Shack Short Pump", cat:"Fast food", area:"Short Pump", rating:4.3, reviews:820, price:2, hue:175, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcROSpndFErd34ZIvl3CZA1ovZvhfIzQogDyNdKCoOlktg&s=10", open:11, close:22,
    curve:[0,0,0,0,0,0,0,0,0,0,0,54,80,66,52,56,72,88,86,62,34,12,0,0],
    menu:[["Burgers",[["ShackBurger","Single, ShackSauce","7.89"],["SmokeShack","Bacon, cherry peppers","10.29"]]],["Frozen custard",[["Concrete","Blended, mix-ins","6.29"],["Shake","Hand spun","6.09"]]]]},
-  {name:"Sheetz Broad Street", cat:"Fast food", area:"Glen Allen", rating:4.2, reviews:1460, price:1, hue:56, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSchzxXp7s8rgTb32mE8uFSEQF-x28P3blTC_-fgOI07qMSzDHsMaU75Sxg&s=10", open:0, close:24,
+  {name:"Sheetz Broad Street", cat:"Fast food", area:"Glen Allen", rating:4.2, reviews:1460, price:1, hue:122, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSchzxXp7s8rgTb32mE8uFSEQF-x28P3blTC_-fgOI07qMSzDHsMaU75Sxg&s=10", open:0, close:24,
    curve:[24,18,14,12,14,26,48,66,54,42,46,74,82,58,48,52,66,74,68,58,52,46,38,30],
    menu:[["Made to order",[["Shmagel Burger","Bagel bun, egg, cheese","6.49"],["Chicken Strip Basket","With fries","8.29"]]],["MTO Drinks",[["Cold brew","Any size","3.29"],["Slushie","","2.49"]]]]},
-  {name:"Taco Bell Short Pump", cat:"Fast food", area:"Short Pump", rating:3.9, reviews:1120, price:1, hue:280, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSQXL5Ezx8XqbYQ1ARaiT0MkGO17e7Ge96C-UchKoWfXw&s", open:8, close:26,
+  {name:"Taco Bell Short Pump", cat:"Fast food", area:"Short Pump", rating:3.9, reviews:1120, price:1, hue:291, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSQXL5Ezx8XqbYQ1ARaiT0MkGO17e7Ge96C-UchKoWfXw&s", open:8, close:26,
    curve:[58,38,18,0,0,0,0,0,22,32,44,76,84,60,46,50,64,78,74,62,58,64,72,68],
    menu:[["Cravings",[["Crunchwrap Supreme","","5.49"],["Chalupa Supreme","","4.99"],["Bean burrito","","2.49"]]],["Boxes",[["Cravings Box","Four items, drink","7.99"]]]]},
-  {name:"Bojangles Glen Allen", cat:"Fast food", area:"Glen Allen", rating:4.0, reviews:740, price:1, hue:30, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRyyq3x_lFwFwFFj-oikeDqD8H3kH0GodgR0aWzf_sBCg&s=10", open:5.5, close:22,
+  {name:"Bojangles Glen Allen", cat:"Fast food", area:"Glen Allen", rating:4.0, reviews:740, price:1, hue:64, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRyyq3x_lFwFwFFj-oikeDqD8H3kH0GodgR0aWzf_sBCg&s=10", open:5.5, close:22,
    curve:[0,0,0,0,0,42,72,86,74,52,44,72,80,56,42,44,58,70,62,40,20,6,0,0],
    menu:[["Breakfast",[["Cajun Filet Biscuit","","5.29"],["Sausage biscuit","","3.19"]]],["Chicken",[["8pc Family Meal","Two sides, biscuits","24.99"],["Supremes combo","","9.49"]]],["Sides",[["Bo-Tato Rounds","","2.79"],["Dirty rice","","2.79"]]]]},
-  {name:"Lamplighter Roasting Co.", cat:"Coffee", area:"Scott's Addition", rating:4.6, reviews:1240, price:1, hue:28, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSUInsXhucZupeEFTQuHrHqYHlMzxIDeieV-jwsQ2301OEq9qKPFQi-54c&s=10", open:6.5, close:18,
+  {name:"McDonald's West Broad", cat:"Fast food", area:"Short Pump", rating:3.7, reviews:1680, price:1, hue:111, photo:null, open:5, close:24,
+   curve:[0,0,0,0,0,24,52,76,84,64,48,74,94,72,52,48,60,78,74,58,42,34,26,14],
+   menu:[["Breakfast",[["Egg McMuffin","","4.79"],["Sausage biscuit","","3.29"],["Hotcakes","Butter, syrup","4.99"]]],["Burgers",[["Big Mac","","6.29"],["Quarter Pounder with Cheese","","6.79"],["McDouble","","3.49"]]],["Sides",[["World Famous Fries","Medium","3.79"],["10pc McNuggets","","5.99"]]]]},
+  {name:"Wendy's Innsbrook", cat:"Fast food", area:"Innsbrook", rating:3.9, reviews:890, price:1, hue:355, photo:null, open:6.5, close:25,
+   curve:[42,0,0,0,0,0,18,38,42,36,44,80,92,68,50,48,64,80,76,60,48,44,52,48],
+   menu:[["Burgers",[["Dave's Single","Fresh beef, never frozen","7.29"],["Baconator","Six strips","9.29"],["Jr. Bacon Cheeseburger","","3.29"]]],["Chicken",[["Spicy Chicken Sandwich","","6.99"],["10pc Nuggets","","4.49"]]],["Sides",[["Chili","Small","3.19"],["Frosty","Small, chocolate","2.49"]]]]},
+  {name:"Burger King Glen Allen", cat:"Fast food", area:"Glen Allen", rating:3.6, reviews:640, price:1, hue:74, photo:null, open:6, close:23,
+   curve:[0,0,0,0,0,0,20,44,52,40,42,72,86,64,46,44,58,72,68,50,32,20,8,0],
+   menu:[["Flame grilled",[["Whopper","","7.29"],["Bacon King","Two patties","9.49"],["Cheeseburger","","2.49"]]],["Chicken",[["Original Chicken Sandwich","","6.49"],["8pc Nuggets","","3.29"]]],["Sides",[["Onion rings","Medium","3.49"],["Fries","Medium","3.29"]]]]},
+  {name:"Panda Express Short Pump", cat:"Fast food", area:"Short Pump", rating:3.9, reviews:1120, price:1, hue:339, photo:null, open:10, close:21.5,
+   curve:[0,0,0,0,0,0,0,0,0,0,32,78,90,66,48,46,64,80,72,48,22,6,0,0],
+   menu:[["Plates",[["Bowl","One side, one entrée","9.20"],["Plate","One side, two entrées","11.40"],["Bigger Plate","One side, three entrées","13.40"]]],["Entrées",[["Orange Chicken","","6.20"],["Beijing Beef","","6.70"],["Honey Walnut Shrimp","Premium upcharge","8.20"]]],["Sides",[["Chow mein","","5.20"],["Fried rice","","5.20"]]]]},
+  {name:"Jersey Mike's Short Pump", cat:"Deli", area:"Short Pump", rating:4.3, reviews:780, price:1, hue:254, photo:null, open:10, close:21,
+   curve:[0,0,0,0,0,0,0,0,0,0,28,74,92,64,44,42,58,72,62,40,16,0,0,0],
+   menu:[["Cold subs",[["#13 Original Italian","Provolone, ham, prosciuttini","10.45"],["#7 Turkey and Provolone","","10.45"]]],["Hot subs",[["#17 Mike's Famous Philly","","11.95"],["Chipotle Cheese Steak","","11.95"]]],["Extras",[["Chips and drink combo","","3.95"]]]]},
+  {name:"Subway Glen Allen", cat:"Deli", area:"Glen Allen", rating:3.5, reviews:420, price:1, hue:148, photo:null, open:8, close:22,
+   curve:[0,0,0,0,0,0,0,0,18,26,34,68,84,58,40,38,52,64,56,38,20,8,0,0],
+   menu:[["Footlongs",[["Italian B.M.T.","Genoa salami, pepperoni, ham","9.99"],["Turkey Breast","","9.49"],["Meatball Marinara","","8.99"]]],["Sides",[["Cookies","Three pack","3.29"],["Chips","","2.19"]]]]},
+  {name:"Crumbl Short Pump", cat:"Sweets", area:"Short Pump", rating:4.4, reviews:960, price:2, hue:312, photo:null, open:8, close:22,
+   curve:[0,0,0,0,0,0,0,0,14,22,28,36,44,40,38,44,56,68,80,88,76,52,0,0],
+   menu:[["This week",[["Milk Chocolate Chip","Served warm","5.29"],["Chilled Sugar","Pink almond frosting","5.29"],["Rotating flavors","Four new every week","5.29"]]],["Boxes",[["4-pack","","17.99"],["6-pack","","24.99"]]]]},
+  {name:"Potbelly Innsbrook", cat:"Deli", area:"Innsbrook", rating:4.1, reviews:510, price:1, hue:53, photo:null, open:10, close:20,
+   curve:[0,0,0,0,0,0,0,0,0,0,26,76,96,62,36,30,38,44,28,10,0,0,0,0],
+   menu:[["Originals",[["A Wreck","Salami, roast beef, turkey, ham","9.79"],["Italian","Salami, capicola, mortadella","9.29"],["Turkey Breast","","8.99"]]],["Sides",[["Broccoli cheddar soup","","5.49"],["Chocolate chip cookie","","2.49"]]],["Shakes",[["Hand-dipped milkshake","","5.99"]]]]},
+  {name:"Cava Short Pump", cat:"Fast food", area:"Short Pump", rating:4.4, reviews:1240, price:2, hue:212, photo:null, open:10.75, close:22,
+   curve:[0,0,0,0,0,0,0,0,0,0,22,70,88,60,42,44,64,84,78,54,28,10,0,0],
+   menu:[["Bowls",[["Greens + grains","Base, two dips, protein, toppings","12.55"],["Harissa avocado bowl","Spicy, with falafel","13.25"],["Chicken + rice","","11.95"]]],["Pitas",[["Grilled chicken pita","Same fillings, wrapped","11.45"]]],["Sides",[["Pita chips","With tzatziki","4.25"],["Splendid greens","Side salad","4.95"]]]]},
+  {name:"Sonic Drive-In Glen Allen", cat:"Fast food", area:"Glen Allen", rating:3.8, reviews:680, price:1, hue:0, photo:null, open:6, close:24,
+   curve:[0,0,0,0,0,0,18,36,44,38,42,66,78,62,54,58,66,72,68,54,42,32,20,8],
+   menu:[["Burgers",[["SONIC Cheeseburger","","5.99"],["Chili Cheese Coney","","3.49"]]],["Drinks",[["Cherry Limeade","Route 44","3.99"],["Slush","Half price after 8pm","2.99"]]],["Frozen",[["Oreo Blast","","4.79"]]]]},
+  {name:"Vinny's New York Pizza", cat:"Restaurants", area:"Glen Allen", rating:4.2, reviews:740, price:1, hue:265, photo:null, open:11, close:22,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,44,62,40,26,30,54,74,78,58,34,12,0,0],
+   menu:[["By the slice",[["Cheese","","3.75"],["Pepperoni","","4.25"],["Sicilian","Thick crust, square","4.75"]]],["Pies",[["18\" large cheese","","17.99"],["Meat lovers","","24.99"]]],["Sides",[["Garlic knots","Six","5.49"]]]]},
+  {name:"Sushi Kingdom", cat:"Restaurants", area:"Near West End", rating:4.3, reviews:1080, price:2, hue:132, photo:null, open:11, close:22,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,42,58,38,24,28,52,76,82,64,40,14,0,0],
+   menu:[["All you can eat",[["Lunch AYCE","Per person","22.99"],["Dinner AYCE","Per person","31.99"]]],["Rolls",[["Spicy tuna","","7.50"],["Dragon roll","Eel, avocado","14.00"]]],["Kitchen",[["Miso soup","","3.00"],["Gyoza","Six pieces","7.00"]]]]},
+  {name:"Buffalo Wild Wings Short Pump", cat:"Bars", area:"Short Pump", rating:3.8, reviews:1620, price:2, hue:95, photo:null, open:11, close:24,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,38,54,42,36,44,66,80,84,78,68,54,34,14],
+   menu:[["Wings",[["Traditional","Choice of sauce, 10pc","16.99"],["Boneless","10pc","14.99"]]],["Sauces",[["Mango Habanero","Hot","0.00"],["Garlic Parmesan","Mild","0.00"]]],["Kitchen",[["Cheese curds","","9.49"],["All-American Cheeseburger","","14.99"]]]]},
+  {name:"World of Beer Short Pump", cat:"Bars", area:"Short Pump", rating:4.1, reviews:880, price:2, hue:90, photo:null, open:16, close:25,
+   curve:[36,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,28,52,70,82,88,76,58,44],
+   menu:[["Taps",[["Rotating draft","50+ on tap","7.50"],["Flight","Four pours","14.00"]]],["Kitchen",[["Bavarian pretzel","Beer cheese","11.00"],["Loaded tots","","10.50"]]]]},
+  {name:"Firebirds Wood Fired Grill", cat:"Restaurants", area:"Short Pump", rating:4.4, reviews:1460, price:3, hue:26, photo:null, open:11, close:22,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,44,62,46,32,36,58,80,86,68,42,16,0,0],
+   menu:[["From the grill",[["Filet mignon","8oz, wood fired","42.00"],["Cedar planked salmon","","29.00"]]],["Starters",[["Firecracker shrimp","","14.00"],["Smoked wings","","13.00"]]]]},
+  {name:"Texas de Brazil", cat:"Restaurants", area:"Short Pump", rating:4.5, reviews:1240, price:3, hue:344, photo:null, open:16, close:22,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,32,64,84,78,54,24,0,0],
+   menu:[["Churrasco",[["Full experience","Carvers plus salad area","59.99"],["Salad area only","","34.99"]]],["Cuts",[["Picanha","House specialty","0.00"],["Filet mignon wrapped in bacon","","0.00"]]]]},
+  {name:"The Cheesecake Factory", cat:"Restaurants", area:"Short Pump", rating:4.2, reviews:3140, price:2, hue:302, photo:null, open:11, close:23,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,56,76,62,48,52,72,90,96,84,62,34,10,0],
+   menu:[["Mains",[["Chicken Madeira","","27.95"],["Louisiana Chicken Pasta","","26.95"],["Factory Burrito Grande","","21.95"]]],["Cheesecake",[["Original","Per slice","10.95"],["Oreo Dream Extreme","","11.95"]]]]},
+  {name:"Texas Roadhouse Short Pump", cat:"Restaurants", area:"Short Pump", rating:4.4, reviews:2680, price:2, hue:191, photo:null, open:11, close:22,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,48,66,44,28,36,68,88,94,76,48,18,0,0],
+   menu:[["Steaks",[["6oz Sirloin","Two sides","17.99"],["Ribeye","12oz","28.99"]]],["Ribs",[["Full slab","Fall-off-the-bone","26.99"]]],["Sides",[["Fresh baked bread","With cinnamon butter","0.00"],["Loaded sweet potato","","4.99"]]]]},
+  {name:"Cooper's Hawk Winery", cat:"Restaurants", area:"Short Pump", rating:4.5, reviews:1520, price:3, hue:318, photo:null, open:11, close:22,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,38,56,42,34,40,62,84,88,70,44,16,0,0],
+   menu:[["Kitchen",[["Short rib risotto","","32.00"],["Dana's Parmesan Crusted Chicken","","27.00"]]],["Tasting room",[["Wine flight","Eight pours","12.00"],["Bottle of the month","","24.00"]]]]},
+  {name:"Ford's Garage Short Pump", cat:"Restaurants", area:"Short Pump", rating:4.3, reviews:980, price:2, hue:249, photo:null, open:11, close:23,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,40,58,44,34,40,62,80,84,72,54,30,8,0],
+   menu:[["Burgers",[["Model A","Cheddar, bacon jam","16.99"],["Cowboy burger","Onion straws, BBQ","18.49"]]],["Taps",[["Local draft","Rotating","7.00"]]]]},
+  {name:"BJ's Restaurant & Brewhouse", cat:"Restaurants", area:"Short Pump", rating:4.1, reviews:1780, price:2, hue:79, photo:null, open:11, close:23,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,46,64,48,36,42,64,82,86,70,50,26,6,0],
+   menu:[["Deep dish",[["Great White","Alfredo, mozzarella","19.95"],["BJ's Favorite","Loaded","21.95"]]],["Brewhouse",[["Handcrafted flight","Five pours","11.00"]]],["Dessert",[["Pizookie","Warm cookie, ice cream","11.50"]]]]},
+  {name:"Plaza Azteca Short Pump", cat:"Tacos", area:"Short Pump", rating:4.2, reviews:1340, price:2, hue:159, photo:null, open:11, close:22,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,50,68,46,32,38,60,82,88,66,40,14,0,0],
+   menu:[["Tableside",[["Guacamole","Made at your table","10.99"],["Molcajete","Steak, chicken, shrimp","28.99"]]],["Plates",[["Fajitas","Sizzling, steak or chicken","19.99"],["Enchiladas supremas","","15.99"]]],["Bar",[["House margarita","","9.99"]]]]},
+  {name:"Olive Garden Short Pump", cat:"Restaurants", area:"Short Pump", rating:4.2, reviews:2240, price:2, hue:143, photo:null, open:11, close:22,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,52,72,54,38,42,64,86,90,68,42,14,0,0],
+   menu:[["Pasta",[["Never Ending Pasta Bowl","Unlimited","14.99"],["Chicken Alfredo","","20.99"],["Lasagna Classico","","19.99"]]],["Included",[["Breadsticks and salad","Unlimited with entrée","0.00"]]]]},
+  {name:"Regal Short Pump & IMAX", cat:"Entertainment", area:"Short Pump", rating:4.3, reviews:2860, price:2, hue:281, photo:null, open:11, close:25,
+   curve:[44,0,0,0,0,0,0,0,0,0,0,20,34,42,48,52,58,70,82,88,80,66,54,50],
+   menu:[["Tickets",[["Standard","Adult evening","14.99"],["IMAX","Adult evening","19.99"],["Matinee","Before 4pm","10.99"]]],["Concessions",[["Large popcorn","Free refill","9.50"],["Fountain drink","Large","6.75"]]]]},
+  {name:"Dave & Buster's Short Pump", cat:"Entertainment", area:"Short Pump", rating:4.1, reviews:1920, price:2, hue:296, photo:null, open:11, close:24,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,26,40,46,50,56,64,74,84,88,82,70,52,30],
+   menu:[["Play",[["Game card","$20 credit","20.00"],["Unlimited play","Weekday special","32.99"]]],["Kitchen",[["Wings","Ten piece","16.99"],["Cheeseburger","","15.99"]]],["Bar",[["Draft beer","","7.50"]]]]},
+  {name:"Chuy's Short Pump", cat:"Tacos", area:"Short Pump", rating:4.3, reviews:1580, price:2, hue:16, photo:null, open:11, close:22,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,52,70,48,34,40,62,84,90,70,44,16,0,0],
+   menu:[["Tex-Mex",[["Chuychanga","Deep fried, choice of sauce","15.99"],["Big As Yo' Face Burrito","","14.99"],["Elvis Green Chile Fried Chicken","","16.49"]]],["Happy hour",[["Nacho Car","Free with drink, 4-7pm","0.00"]]],["Bar",[["Frozen margarita","","9.50"]]]]},
+  {name:"Ray's Italian Ice", cat:"Sweets", area:"Glen Allen", rating:4.6, reviews:380, price:1, hue:259, photo:null, open:12, close:22,
+   season:{from:"03-15", to:"10-31"},
+   curve:[0,0,0,0,0,0,0,0,0,0,0,0,20,32,44,54,64,76,84,80,68,50,0,0],
+   menu:[["Italian ice",[["Small","Rotating flavors","3.50"],["Large","","5.50"]]],["Blends",[["Gelati","Italian ice layered with custard","5.95"],["Custard cone","","4.25"]]]]},
+  {name:"Gelati Celesti", cat:"Sweets", area:"The Fan", rating:4.7, reviews:1680, price:1, hue:238, photo:null, open:12, close:22,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,0,26,38,50,60,72,84,92,88,72,50,0,0],
+   menu:[["Scoops",[["Single","Cup or cone","4.75"],["Double","","6.25"]]],["Signature flavors",[["Chocolate Rye","","4.75"],["Coffee Oreo","","4.75"],["Sea Salt Caramel","","4.75"]]],["Pints",[["Hand packed","","8.50"]]]]},
+  {name:"Bruster's Real Ice Cream", cat:"Sweets", area:"Glen Allen", rating:4.5, reviews:540, price:1, hue:270, photo:null, open:12, close:22,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,0,22,34,46,56,66,78,86,82,68,44,0,0],
+   menu:[["Scoops",[["Single scoop waffle cone","","5.25"],["Double scoop","","6.75"]]],["Rotating",[["Flavor of the day","24 made fresh daily","5.25"]]],["Blends",[["Sundae","Two scoops, toppings","7.50"]]]]},
+  {name:"Cold Stone Creamery Short Pump", cat:"Sweets", area:"Short Pump", rating:4.1, reviews:620, price:2, hue:328, photo:null, open:12, close:22,
+   curve:[0,0,0,0,0,0,0,0,0,0,0,0,18,28,38,46,58,70,82,86,72,48,0,0],
+   menu:[["Signature creations",[["Founder's Favorite","Sweet cream, brownie, pecans","8.49"],["Birthday Cake Remix","","8.49"]]],["Build your own",[["Like It","5oz","6.49"],["Love It","8oz","7.49"]]],["Cakes",[["8\" ice cream cake","","39.99"]]]]},
+  {name:"Lamplighter Roasting Co.", cat:"Coffee", area:"Scott's Addition", rating:4.6, reviews:1240, price:1, hue:58, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSUInsXhucZupeEFTQuHrHqYHlMzxIDeieV-jwsQ2301OEq9qKPFQi-54c&s=10", open:6.5, close:18,
    curve:[0,0,0,0,0,0,18,42,71,78,66,58,54,49,44,36,24,12,4,0,0,0,0,0],
    menu:[["Drinks",[["Cortado","Double shot, steamed milk","4.25"],["Cold brew","16oz, house blend","4.75"],["Chai latte","Spiced, oat milk available","5.50"]]],["Food",[["Avocado toast","Sourdough, chili flake, lemon","9.00"],["Breakfast sandwich","Egg, cheddar, brioche","7.50"]]]]},
-  {name:"Sub Rosa Bakery", cat:"Bakery", area:"Church Hill", rating:4.8, reviews:2110, price:2, hue:36, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSU6aYsBiNbnjJDP-0HDwLtrXd49dEWlKYZtCgIA8J21A&s=10", open:7, close:15,
+  {name:"Sub Rosa Bakery", cat:"Bakery", area:"Church Hill", rating:4.8, reviews:2110, price:2, hue:127, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSU6aYsBiNbnjJDP-0HDwLtrXd49dEWlKYZtCgIA8J21A&s=10", open:7, close:15,
    curve:[0,0,0,0,0,0,22,58,84,92,74,55,38,26,14,6,0,0,0,0,0,0,0,0],
    menu:[["Morning",[["Wood-fired croissant","Laminated, stone-milled flour","4.50"],["Cardamom bun","Toasted, sugar crust","5.00"],["Seasonal galette","Ask about today's fruit","6.25"]]],["Loaves",[["Country sourdough","Naturally leavened","8.00"],["Rye miche","Whole grain, dense crumb","9.50"]]]]},
-  {name:"ZZQ Texas Craft Barbeque", cat:"Barbecue", area:"Scott's Addition", rating:4.7, reviews:3480, price:2, hue:14, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQv6HrRfHvd2AVPms6b6HnUZFvFMDEafuQ-YfweE2IN4w&s=10", open:11, close:21,
+  {name:"ZZQ Texas Craft Barbeque", cat:"Barbecue", area:"Scott's Addition", rating:4.7, reviews:3480, price:2, hue:21, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQv6HrRfHvd2AVPms6b6HnUZFvFMDEafuQ-YfweE2IN4w&s=10", open:11, close:21,
    curve:[0,0,0,0,0,0,0,0,0,0,34,76,95,88,62,44,52,74,81,56,22,0,0,0],
    menu:[["By the pound",[["Brisket","Post oak smoked, 14 hours","32.00"],["Pork spare ribs","Dry rubbed","28.00"],["Jalapeño cheddar sausage","House made","24.00"]]],["Sides",[["Mac and cheese","Smoked gouda","6.00"],["Collards","Slow braised","5.50"]]]]},
-  {name:"The Veil Brewing Co.", cat:"Bars", area:"Scott's Addition", rating:4.5, reviews:1890, price:2, hue:48, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRnywYJxlBChEe5rLi8OCy07nH-FSXTyTXThkUD_xdXrA&s=10", open:12, close:23,
+  {name:"The Veil Brewing Co.", cat:"Bars", area:"Scott's Addition", rating:4.5, reviews:1890, price:2, hue:106, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRnywYJxlBChEe5rLi8OCy07nH-FSXTyTXThkUD_xdXrA&s=10", open:12, close:23,
    curve:[0,0,0,0,0,0,0,0,0,0,0,18,34,42,50,62,78,88,92,86,70,44,18,0],
    menu:[["On tap",[["Master Shredder","Hazy IPA, 6.8%","8.00"],["Crucial Taunt","DIPA, 8.2%","9.50"],["Never Never Land","Sour, mixed fermentation","10.00"]]],["To go",[["4-pack crowler","Rotating selection","22.00"]]]]},
-  {name:"Mama J's Kitchen", cat:"Southern", area:"Jackson Ward", rating:4.7, reviews:4260, price:2, hue:22, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQt6iD3TJrLvqUjVkxrXVz5qqGZHU8uYhRRI0mDCFwJsw&s=10", open:11, close:21,
+  {name:"Mama J's Kitchen", cat:"Southern", area:"Jackson Ward", rating:4.7, reviews:4260, price:2, hue:42, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQt6iD3TJrLvqUjVkxrXVz5qqGZHU8uYhRRI0mDCFwJsw&s=10", open:11, close:21,
    curve:[0,0,0,0,0,0,0,0,12,32,58,82,90,68,52,48,62,80,86,64,34,12,0,0],
    menu:[["Plates",[["Fried catfish","Cornmeal crust, two sides","18.00"],["Fried chicken","Quarter dark, two sides","16.50"],["Smothered pork chop","Onion gravy","17.00"]]],["Sides",[["Candied yams","","4.50"],["Mac and cheese","","4.50"],["Collard greens","Smoked turkey","4.50"]]]]},
-  {name:"Perly's Delicatessen", cat:"Deli", area:"Downtown", rating:4.6, reviews:2870, price:2, hue:8, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTw40L2s215NEe6ZcWxB2PvWnr1K01WCp3Yye3VlqDlBA&s=10", open:8, close:17,
+  {name:"Perly's Delicatessen", cat:"Deli", area:"Downtown", rating:4.6, reviews:2870, price:2, hue:206, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTw40L2s215NEe6ZcWxB2PvWnr1K01WCp3Yye3VlqDlBA&s=10", open:8, close:17,
    curve:[0,0,0,0,0,0,0,24,46,58,72,88,94,71,48,30,18,10,0,0,0,0,0,0],
    menu:[["Sandwiches",[["Pastrami on rye","House cured, mustard","16.00"],["Reuben","Kraut, swiss, russian","17.00"]]],["All day",[["Latkes","Sour cream, applesauce","9.00"],["Matzo ball soup","","8.00"]]]]},
-  {name:"Can Can Brasserie", cat:"Restaurants", area:"Carytown", rating:4.4, reviews:3020, price:3, hue:340, photo:null, open:7.5, close:22,
+  {name:"Can Can Brasserie", cat:"Restaurants", area:"Carytown", rating:4.4, reviews:3020, price:3, hue:286, photo:null, open:7.5, close:22,
    curve:[0,0,0,0,0,0,0,18,42,66,74,82,86,64,42,38,56,78,90,74,50,24,0,0],
    menu:[["Brasserie",[["Steak frites","Hanger, herb butter","32.00"],["Moules marinière","White wine, shallot","24.00"],["Croque madame","Gruyère, fried egg","17.00"]]],["Raw bar",[["Oysters","Half dozen, mignonette","19.00"]]]]},
-  {name:"Soul Taco", cat:"Tacos", area:"Jackson Ward", rating:4.5, reviews:1560, price:2, hue:32, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQn76RQkoeMnDtEfzUEoXkP8lKg5DPr4lFGR9shMKHwQA&s=10", open:11, close:23,
+  {name:"Soul Taco", cat:"Tacos", area:"Jackson Ward", rating:4.5, reviews:1560, price:2, hue:69, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQn76RQkoeMnDtEfzUEoXkP8lKg5DPr4lFGR9shMKHwQA&s=10", open:11, close:23,
    curve:[0,0,0,0,0,0,0,0,0,0,22,54,68,46,34,38,60,78,84,70,52,30,10,0],
    menu:[["Tacos",[["Fried chicken","Comeback sauce, slaw","6.00"],["Blackened catfish","Remoulade","6.50"],["Braised oxtail","Pickled onion","7.50"]]],["Sides",[["Elote","Cotija, lime","7.00"]]]]},
-  {name:"Stella's", cat:"Restaurants", area:"Near West End", rating:4.6, reviews:2640, price:3, hue:200, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTCdbl5ircy1XBomtxGaayCRxksPvrcqzdLsteQyXoU1A&s=10", open:11, close:22,
+  {name:"Stella's", cat:"Restaurants", area:"Near West End", rating:4.6, reviews:2640, price:3, hue:307, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTCdbl5ircy1XBomtxGaayCRxksPvrcqzdLsteQyXoU1A&s=10", open:11, close:22,
    curve:[0,0,0,0,0,0,0,0,0,0,0,44,62,38,22,26,58,84,96,78,48,18,0,0],
    menu:[["Meze",[["Saganaki","Flamed kefalograviera","14.00"],["Taramosalata","Roe spread, pita","11.00"]]],["Mains",[["Lamb chops","Oregano, lemon","38.00"],["Whole branzino","Grilled, ladolemono","34.00"]]]]},
-  {name:"Nate's Bagels", cat:"Bakery", area:"Church Hill", rating:4.7, reviews:980, price:1, hue:40, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQjVZ2Ui-Cz1ZW5C_9vkEjRS6KOGpcgvlR172fPuMYnHw&s=10", open:6.5, close:14,
+  {name:"Nate's Bagels", cat:"Bakery", area:"Church Hill", rating:4.7, reviews:980, price:1, hue:185, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQjVZ2Ui-Cz1ZW5C_9vkEjRS6KOGpcgvlR172fPuMYnHw&s=10", open:6.5, close:14,
    curve:[0,0,0,0,0,0,26,64,88,80,58,34,16,6,0,0,0,0,0,0,0,0,0,0],
    menu:[["Bagels",[["Everything","Boiled and baked daily","2.25"],["Sesame","","2.25"]]],["Built",[["Lox platter","Cream cheese, capers, onion","14.00"],["Egg and cheese","Add bacon +2","6.50"]]]]},
-  {name:"The Roosevelt", cat:"Southern", area:"Church Hill", rating:4.6, reviews:1820, price:3, hue:18, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT6HkXt03vc-xlPfU55kvymJBnjwtfypGaTEpJx0KVa9A&s=10", open:16, close:23,
+  {name:"The Roosevelt", cat:"Southern", area:"Church Hill", rating:4.6, reviews:1820, price:3, hue:32, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT6HkXt03vc-xlPfU55kvymJBnjwtfypGaTEpJx0KVa9A&s=10", open:16, close:23,
    curve:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,38,66,84,78,56,28,6,0],
    menu:[["Dinner",[["Shrimp and grits","Byrd Mill grits, tasso","28.00"],["Fried chicken","Half bird, honey butter","26.00"]]],["Bar",[["Seasonal cocktail","Ask your server","13.00"]]]]},
-  {name:"Alewife", cat:"Restaurants", area:"Church Hill", rating:4.7, reviews:1140, price:3, hue:190, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQlrKq_ovjlQbNSiRVa39Ls1KNNqrZB4KEqF_qf9y7CQQ&s=10", open:15, close:22,
+  {name:"Alewife", cat:"Restaurants", area:"Church Hill", rating:4.7, reviews:1140, price:3, hue:196, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQlrKq_ovjlQbNSiRVa39Ls1KNNqrZB4KEqF_qf9y7CQQ&s=10", open:15, close:22,
    curve:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,28,52,74,82,66,40,14,0,0],
    menu:[["From the water",[["Whole roasted fish","Chesapeake catch, changes daily","36.00"],["Oyster stew","Cream, leek, dill","16.00"]]],["Land",[["Duck breast","Seasonal accompaniment","31.00"]]]]},
-  {name:"Blanchard's Coffee", cat:"Coffee", area:"The Fan", rating:4.5, reviews:870, price:1, hue:26, photo:null, open:6.5, close:18,
+  {name:"Blanchard's Coffee", cat:"Coffee", area:"The Fan", rating:4.5, reviews:870, price:1, hue:138, photo:null, open:6.5, close:18,
    curve:[0,0,0,0,0,0,20,48,66,62,54,50,46,44,38,28,16,8,0,0,0,0,0,0],
    menu:[["Espresso",[["Flat white","","4.75"],["Americano","","3.50"]]],["Brewed",[["Pour over","Single origin, rotating","5.00"],["Drip","Free refills","3.00"]]]]},
-  {name:"Ardent Craft Ales", cat:"Bars", area:"Scott's Addition", rating:4.5, reviews:1620, price:2, hue:52, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT6yN6icOLa_NqQiDNElbZ3rtxJjF_Jax4Od1_n4Y99xzP4pQrlbXGH_e8&s=10", open:12, close:23,
+  {name:"Ardent Craft Ales", cat:"Bars", area:"Scott's Addition", rating:4.5, reviews:1620, price:2, hue:116, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT6yN6icOLa_NqQiDNElbZ3rtxJjF_Jax4Od1_n4Y99xzP4pQrlbXGH_e8&s=10", open:12, close:23,
    curve:[0,0,0,0,0,0,0,0,0,0,0,14,28,38,46,58,72,84,80,68,52,30,10,0],
    menu:[["Taproom",[["Ardent IPA","6.8%","7.00"],["Honey Ginger","5.2%","7.00"],["Pilsner","4.9%","6.50"]]],["Kitchen",[["Pretzel","Beer cheese","9.00"]]]]},
-  {name:"Brenner Pass", cat:"Restaurants", area:"Scott's Addition", rating:4.5, reviews:1330, price:3, hue:170, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQfTJsuruFTC5NqdKICvnpssEwgnu12NN2bveCJTZ4Khw&s=10", open:8, close:22,
+  {name:"Brenner Pass", cat:"Restaurants", area:"Scott's Addition", rating:4.5, reviews:1330, price:3, hue:217, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQfTJsuruFTC5NqdKICvnpssEwgnu12NN2bveCJTZ4Khw&s=10", open:8, close:22,
    curve:[0,0,0,0,0,0,0,0,16,38,44,52,58,40,28,32,54,76,88,72,46,20,0,0],
    menu:[["Alpine",[["Raclette","Scraped tableside, potatoes","29.00"],["Fondue","Gruyère, kirsch","26.00"]]],["Plates",[["Rösti","Crisp potato, egg","15.00"]]]]},
-  {name:"Sabai", cat:"Restaurants", area:"The Fan", rating:4.4, reviews:1050, price:2, hue:120, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRuMLp4Ite3F5v6YM7iS75TW46XpSOyu9IwfkJ220yVZg&s=10", open:11, close:22,
+  {name:"Sabai", cat:"Restaurants", area:"The Fan", rating:4.4, reviews:1050, price:2, hue:180, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRuMLp4Ite3F5v6YM7iS75TW46XpSOyu9IwfkJ220yVZg&s=10", open:11, close:22,
    curve:[0,0,0,0,0,0,0,0,0,0,0,36,52,32,20,24,48,70,78,62,38,16,0,0],
    menu:[["Curry",[["Massaman","Beef, potato, peanut","19.00"],["Green curry","Thai basil, bamboo","18.00"]]],["Noodles",[["Pad see ew","Wide rice noodle","17.00"]]]]},
-  {name:"Lunch / Supper", cat:"Southern", area:"Scott's Addition", rating:4.3, reviews:2240, price:2, hue:12, photo:null, open:8, close:22,
+  {name:"Lunch / Supper", cat:"Southern", area:"Scott's Addition", rating:4.3, reviews:2240, price:2, hue:169, photo:null, open:8, close:22,
    curve:[0,0,0,0,0,0,0,0,14,46,62,70,66,42,26,30,50,72,80,58,32,12,0,0],
    menu:[["All day",[["Chicken and waffles","Hot honey","19.00"],["Meatloaf","Tomato glaze, two sides","18.00"]]],["Sides",[["Fried okra","","5.00"]]]]},
-  {name:"Crossroads Coffee", cat:"Coffee", area:"Forest Hill", rating:4.5, reviews:1410, price:1, hue:30, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTpWl5SlJm-Muvp0SxvHF-rjVCH5oHra1zmvbq9ccROsQ&s=10", open:6.5, close:18,
+  {name:"Crossroads Coffee", cat:"Coffee", area:"Forest Hill", rating:4.5, reviews:1410, price:1, hue:228, photo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTpWl5SlJm-Muvp0SxvHF-rjVCH5oHra1zmvbq9ccROsQ&s=10", open:6.5, close:18,
    curve:[0,0,0,0,0,0,16,40,62,70,58,50,44,40,36,30,20,10,0,0,0,0,0,0],
    menu:[["Coffee",[["Latte","","4.50"],["Mocha","House ganache","5.25"]]],["Pastry",[["Scone","Rotating flavor","3.75"]]]]}
 ];
 
-const CATS = ["All","Fast food","Coffee","Bakery","Restaurants","Bars","Southern","Barbecue","Tacos","Deli"];
+const CATS = ["All","Fast food","Coffee","Bakery","Sweets","Restaurants","Bars","Southern","Barbecue","Tacos","Deli","Entertainment"];
 const AREAS = [...new Set(V.map(v=>v.area))].sort();
 const LABEL = {quiet:"Not busy", moderate:"Steady", packed:"Packed"};
 const WAITS = {quiet:"Walk right in", moderate:"Short wait", packed:"Expect a wait"};
 const PRICE = {1:"$",2:"$$",3:"$$$"};
 
 /* ---------- filter state ---------- */
-const F = {cat:"All", busy:[], price:[], area:[], rating:0, showClosed:true, openOnly:false};
+/* storage that degrades to memory if localStorage is blocked (private mode, embeds) */
+const mem={};
+const store={
+  get(k,d){try{const v=localStorage.getItem(k);return v===null?(k in mem?mem[k]:d):JSON.parse(v);}
+           catch(e){return k in mem?mem[k]:d;}},
+  set(k,v){mem[k]=v;try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+};
+const favs=new Set(store.get("rnrva:favs",[]));
+function toggleFav(n){favs.has(n)?favs.delete(n):favs.add(n);store.set("rnrva:favs",[...favs]);}
+
+const F = {cat:"All", q:"", favOnly:false, busy:[], price:[], area:[], rating:0, showClosed:true, openOnly:false};
 let draft = null;
 
 /* ---------- time helpers ---------- */
+const MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
+/* optional season:{from:"MM-DD", to:"MM-DD"} — venue is shut outside that window */
+function inSeason(v,d=new Date()){
+  if(!v.season) return true;
+  const md=String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  const {from,to}=v.season;
+  return from<=to ? (md>=from && md<=to) : (md>=from || md<=to);
+}
+function seasonReopen(v){const [m,d]=v.season.from.split("-").map(Number);return `${MONTHS[m-1]} ${d}`;}
 function nowH(){const d=new Date();return d.getHours()+d.getMinutes()/60;}
 function isOpen(v,t=nowH()){
+  if(!inSeason(v)) return false;
   if(v.close>24) return t>=v.open || t<(v.close-24);
   return t>=v.open && t<v.close;
 }
@@ -380,19 +510,23 @@ function fmt(h){
   return m?`${d}:${String(m).padStart(2,"0")} ${ap}`:`${d} ${ap}`;
 }
 function opensIn(v){
+  if(!inSeason(v)) return `Closed for the season · reopens ${seasonReopen(v)}`;
   const t=nowH();
   let diff = v.open - t; if(diff<0) diff+=24;
   if(diff<1) return `Opens in ${Math.round(diff*60)} min`;
   if(diff<6) return `Opens at ${fmt(v.open)}`;
   return `Opens ${fmt(v.open)} tomorrow`;
 }
-/* typical busy window on reopen — reads from the venue's own curve */
+/* typical busy window on reopen — reads from the venue's own curve.
+   Wraps past midnight so late-night venues aren't cut off at hour 23. */
 function peakWindow(v){
   let best=-1,bi=0;
   v.curve.forEach((p,i)=>{if(p>best){best=p;bi=i;}});
-  let s=bi,e=bi;
-  while(s>0 && v.curve[s-1]>best*0.7) s--;
-  while(e<23 && v.curve[e+1]>best*0.7) e++;
+  const at=i=>v.curve[((i%24)+24)%24];
+  let s=bi,e=bi,guard=0;
+  while(at(s-1)>best*0.7 && guard++<23) s--;
+  guard=0;
+  while(at(e+1)>best*0.7 && guard++<23) e++;
   return `Usually busiest ${fmt(s)}–${fmt(e+1)}`;
 }
 
@@ -426,9 +560,17 @@ function photoBlock(v){
 function activeCount(){
   return F.busy.length + F.price.length + F.area.length + (F.rating?1:0) + (F.openOnly?1:0) + (F.showClosed?0:1);
 }
+function matches(v,q){
+  if(!q) return true;
+  const hay=(v.name+" "+v.cat+" "+v.area).toLowerCase();
+  /* every word must appear somewhere, so "coffee fan" finds Blanchard's */
+  return q.toLowerCase().split(/\s+/).filter(Boolean).every(w=>hay.includes(w));
+}
 function apply(){
   return V.map(v=>({v,s:score(v),open:isOpen(v)}))
     .filter(x=>{
+      if(!matches(x.v,F.q)) return false;
+      if(F.favOnly && !favs.has(x.v.name)) return false;
       if(F.cat!=="All" && x.v.cat!==F.cat) return false;
       if(F.price.length && !F.price.includes(x.v.price)) return false;
       if(F.area.length && !F.area.includes(x.v.area)) return false;
@@ -448,6 +590,7 @@ function rail(){
     `<button class="chip filters" id="openFilters" data-active="${n>0}">
        <svg viewBox="0 0 24 24"><path d="M3 5h18v2l-7 7v6l-4-2v-4L3 7z"/></svg>Filters${n?`<span class="badge">${n}</span>`:""}
      </button>` +
+    `<button class="chip" id="favChip" aria-pressed="${F.favOnly}">♥ Saved${favs.size?` ${favs.size}`:""}</button>` +
     CATS.map(c=>`<button class="chip" data-c="${c}" aria-pressed="${c===F.cat}">${c}</button>`).join("");
 }
 
@@ -460,9 +603,9 @@ function feed(){
     `${open.length} open · ${new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})}`;
 
   const card = ({v,s,open}) => `
+    <div class="cardwrap">
     <button class="card ${open?"":"shut"}" data-open="${v.name}">
       <div class="photo">${photoBlock(v)}
-        <span class="fav"><svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.9-9.3-9A5 5 0 0 1 12 6.2 5 5 0 0 1 21.3 12c-1.8 4.1-9.3 9-9.3 9z"/></svg></span>
         ${open
           ? `<span class="pill"><span class="dot" style="background:var(--${s.band})"></span>${LABEL[s.band]}<span class="sub">${s.val}%</span></span>`
           : `<span class="pill shut">Closed</span>`}
@@ -476,12 +619,19 @@ function feed(){
           ? `<div class="wait" style="color:var(--${s.band})">${WAITS[s.band]}</div>`
           : `<div class="shutline"><b>${opensIn(v)}</b><br>${peakWindow(v)}</div>`}
       </div>
-    </button>`;
+    </button>
+    <button class="fav" data-fav="${v.name}" aria-pressed="${favs.has(v.name)}" aria-label="${favs.has(v.name)?"Remove":"Save"} ${v.name}">
+      <svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.9-9.3-9A5 5 0 0 1 12 6.2 5 5 0 0 1 21.3 12c-1.8 4.1-9.3 9-9.3 9z"/></svg>
+    </button>
+    </div>`;
 
   const el=document.getElementById("feed");
   if(!list.length){
-    el.innerHTML=`<div class="empty">Nothing matches these filters.<br><button id="clearInline">Clear filters</button></div>`;
-    document.getElementById("clearInline").onclick=()=>{clear();rail();feed();};
+    const msg = F.favOnly && !favs.size ? "You haven’t saved any places yet.<br>Tap the heart on a card to save it."
+              : F.q ? `No places match “${F.q}”.`
+              : "Nothing matches these filters.";
+    el.innerHTML=`<div class="empty">${msg}<br><button id="clearInline">${F.favOnly&&!favs.size?"Show all places":F.q?"Clear search and filters":"Clear filters"}</button></div>`;
+    document.getElementById("clearInline").onclick=()=>{clear();document.getElementById("q").value="";rail();feed();};
     return;
   }
   el.innerHTML = open.map(card).join("")
@@ -489,7 +639,7 @@ function feed(){
 }
 
 /* ---------- filter panel ---------- */
-function clear(){F.busy=[];F.price=[];F.area=[];F.rating=0;F.openOnly=false;F.showClosed=true;}
+function clear(){F.q="";F.favOnly=false;F.busy=[];F.price=[];F.area=[];F.rating=0;F.openOnly=false;F.showClosed=true;}
 
 function panelBody(){
   const d=draft;
@@ -563,15 +713,14 @@ function openDetail(name){
       <div class="hours">Hours today: <b>${fmt(v.open)} – ${fmt(v.close)}</b></div>
     </div>
     <div class="actions">
-      <button class="btn primary" id="book">Reserve a table</button>
-      <button class="btn" data-report="${v.name}" ${op?"":"disabled"}>${op?"I'm here now":"Closed"}</button>
+      <button class="btn primary" data-report="${v.name}" ${op?"":"disabled"}>${op?"I'm here now":"Closed"}</button>
+      <button class="btn" data-fav="${v.name}" aria-pressed="${favs.has(v.name)}">${favs.has(v.name)?"♥ Saved":"♡ Save"}</button>
     </div>
     <div class="menu">${v.menu.map(([sec,items])=>`<h3>${sec}</h3>`+items.map(([n,ds,p])=>`
       <div class="item"><div class="t"><div class="n">${n}</div>${ds?`<div class="d">${ds}</div>`:""}<div class="p">$${p}</div></div>
       <div class="thumb">${ph(v)}</div></div>`).join("")).join("")}</div>`;
   d.classList.add("on"); document.body.style.overflow="hidden"; d.scrollTop=0;
   document.getElementById("back").onclick=closeDetail;
-  document.getElementById("book").onclick=()=>alert("Booking connects once the OpenTable partner integration is approved.");
 }
 function closeDetail(){document.getElementById("detail").classList.remove("on");document.body.style.overflow="";}
 
@@ -601,15 +750,28 @@ scrim.addEventListener("click",e=>{
 });
 
 /* ---------- events ---------- */
+document.getElementById("q").addEventListener("input",e=>{F.q=e.target.value.trim();feed();});
 document.getElementById("rail").addEventListener("click",e=>{
   if(e.target.closest("#openFilters")) return openPanel();
+  if(e.target.closest("#favChip")){F.favOnly=!F.favOnly;rail();feed();return;}
   const b=e.target.closest(".chip[data-c]"); if(!b) return;
   F.cat=b.dataset.c; rail(); feed();
 });
 document.getElementById("feed").addEventListener("click",e=>{
+  const f=e.target.closest("[data-fav]");
+  if(f){toggleFav(f.dataset.fav);rail();feed();return;}
   const c=e.target.closest("[data-open]"); if(c) openDetail(c.dataset.open);
 });
 document.getElementById("detail").addEventListener("click",e=>{
+  const f=e.target.closest("[data-fav]");
+  if(f){
+    toggleFav(f.dataset.fav);
+    const on=favs.has(f.dataset.fav);
+    f.setAttribute("aria-pressed",on);
+    f.textContent=on?"♥ Saved":"♡ Save";
+    rail(); feed();
+    return;
+  }
   const r=e.target.closest("[data-report]"); if(r&&!r.disabled) openSheet(r.dataset.report);
 });
 document.addEventListener("keydown",e=>{
