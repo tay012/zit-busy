@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import { store } from '../hooks/useStore';
 
 interface ThemeContextValue {
   isDark: boolean;
@@ -12,7 +13,7 @@ function systemDark(): boolean {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [manual, setManual] = useState<string | null>(null);
+  const [manual, setManual] = useState<string | null>(() => store.get("rn:theme", null));
   const isDark = manual === null ? systemDark() : manual === 'dark';
 
   const paint = useCallback((dark: boolean) => {
@@ -35,7 +36,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [manual, paint]);
 
   const toggleTheme = useCallback(() => {
-    setManual(isDark ? 'light' : 'dark');
+    const next = isDark ? 'light' : 'dark';
+    setManual(next);
+    store.set("rn:theme", next);
   }, [isDark]);
 
   return (

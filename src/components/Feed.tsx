@@ -35,7 +35,7 @@ export default function Feed({ onOpenDetail }: FeedProps) {
     return (
       <div className="feed">
         <div className="empty">
-          <span dangerouslySetInnerHTML={{ __html: msg }} />
+          <span>{msg.split("<br>").map((s, i) => i ? <><br key={i} />{s}</> : s)}</span>
           <br />
           <button onClick={handleClear}>{btnText}</button>
         </div>

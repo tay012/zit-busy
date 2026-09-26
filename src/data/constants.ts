@@ -3,7 +3,7 @@ import type { BusyBand } from '../types';
 export const CATS = [
   "All", "Fast food", "Coffee", "Bakery", "Sweets", "Restaurants",
   "Bars", "Southern", "Barbecue", "Tacos", "Deli", "Brunch",
-  "Pizza", "Seafood", "Asian"
+  "Pizza", "Seafood", "Asian", "Entertainment"
 ];
 
 export const LABEL: Record<BusyBand, string> = {

@@ -52,7 +52,7 @@ export default function Navbar() {
           placeholder="Search restaurants, bars, coffee"
           aria-label="Search places"
           value={filters.q}
-          onChange={(e) => setFilter({ q: e.target.value.trim() })}
+          onChange={(e) => setFilter({ q: e.target.value })}
         />
       </div>
     </div>

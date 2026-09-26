@@ -46,7 +46,10 @@ export function opensIn(v: Venue): string {
   const t = nowH();
   let diff = v.open - t;
   if (diff < 0) diff += 24;
-  if (diff < 1) return `Opens in ${Math.round(diff * 60)} min`;
+  if (diff < 1) {
+    const mins = Math.round(diff * 60);
+    return mins < 1 ? "Opens any moment" : `Opens in ${mins} min`;
+  }
   if (diff < 6) return `Opens at ${fmt(v.open)}`;
   return `Opens ${fmt(v.open)} tomorrow`;
 }
