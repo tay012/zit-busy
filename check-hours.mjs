@@ -5,7 +5,7 @@ let issues = 0;
 for (const f of fs.readdirSync(dir).filter(f => f.endsWith('.ts') && f !== 'index.ts')) {
   const path = `${dir}/${f}`;
   let text = fs.readFileSync(path, 'utf8');
-  text = text.replace(/(name:"([^"]+)"[\s\S]*?open:([\d.]+),\s*close:([\d.]+),[\s\S]*?curve:\[)([^\]]+)(\])/g,
+  text = text.replace(/(name:\s*"([^"]+)"[\s\S]*?open:\s*([\d.]+),\s*close:\s*([\d.]+),[\s\S]*?curve:\s*\[)([^\]]+)(\])/g,
     (m, pre, name, o, c, curve, post) => {
       const open = +o, close = +c;
       const vals = curve.split(',').map(Number);
