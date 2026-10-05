@@ -1,7 +1,7 @@
 {
-  "name": "Right Now RVA",
-  "short_name": "Right Now",
-  "description": "See how busy Richmond restaurants, bars and coffee shops are right now.",
+  "name": "Is It Busy?",
+  "short_name": "Is It Busy?",
+  "description": "See how busy Richmond restaurants, bars and coffee shops usually are, hour by hour.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

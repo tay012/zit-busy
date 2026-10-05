@@ -1,7 +1,7 @@
 export default function Footer() {
   return (
     <footer>
-      Prototype. Busyness figures are placeholder data, not live readings. Photos and menus are placeholders.
+      Busyness is based on typical patterns for each hour, not live readings. Menus and prices are samples and may not be current.
     </footer>
   );
 }
