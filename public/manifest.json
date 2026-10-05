@@ -1,7 +1,7 @@
 {
   "name": "Is It Busy?",
   "short_name": "Is It Busy?",
-  "description": "See how busy Richmond restaurants, bars and coffee shops usually are, hour by hour.",
+  "description": "See how busy restaurants, bars and coffee shops usually are, hour by hour.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
