@@ -15,7 +15,7 @@ interface CityContextValue {
 const CityContext = createContext<CityContextValue>(null!);
 
 export function CityProvider({ children }: { children: ReactNode }) {
-  const [currentCity, setCurrentCity] = useState(() => store.get("rn:city", "rva"));
+  const [currentCity, setCurrentCity] = useState(() => { const c = store.get("rn:city", "rva"); return CITIES[c] ? c : "rva"; });
 
   const venues = useMemo(() => VENUES[currentCity] || [], [currentCity]);
   const areas = useMemo(() => [...new Set(venues.map((v) => v.area))].sort(), [venues]);
