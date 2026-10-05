@@ -7,6 +7,13 @@ import { useBodyLock } from '../hooks/useBodyLock';
 import { score } from '../utils/scoring';
 import { isOpen, fmt, opensIn, peakWindow } from '../utils/time';
 import { LABEL, PRICE } from '../data/constants';
+import {
+  RESERVE_PROVIDER,
+  DELIVERY_PROVIDER,
+  RESERVABLE_CATS,
+  NO_DELIVERY_CATS,
+  buildSearchUrl,
+} from '../data/links';
 
 interface DetailPanelProps {
   venueName: string | null;
@@ -28,7 +35,7 @@ function GradientBg({ hue }: { hue: number }) {
 }
 
 export default function DetailPanel({ venueName, onClose, onReport }: DetailPanelProps) {
-  const { venues } = useCity();
+  const { venues, cityName } = useCity();
   const { isFav, toggleFav } = useFavorites();
   const { reports } = useReports();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -51,6 +58,9 @@ export default function DetailPanel({ venueName, onClose, onReport }: DetailPane
   const op = isOpen(v);
   const h = new Date().getHours();
   const faved = isFav(v.name);
+  const searchQuery = `${v.name} ${cityName}`;
+  const canReserve = RESERVABLE_CATS.includes(v.cat);
+  const canDeliver = !NO_DELIVERY_CATS.includes(v.cat);
 
   return (
     <div className={`detail ${isOn ? "on" : ""}`} ref={scrollRef}>
@@ -108,6 +118,26 @@ export default function DetailPanel({ venueName, onClose, onReport }: DetailPane
         >
           {faved ? "♥ Saved" : "♡ Save"}
         </button>
+        {canReserve && (
+          <a
+            className="btn"
+            href={buildSearchUrl(RESERVE_PROVIDER, searchQuery)}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Reserve a table
+          </a>
+        )}
+        {canDeliver && (
+          <a
+            className="btn"
+            href={buildSearchUrl(DELIVERY_PROVIDER, searchQuery)}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Order delivery
+          </a>
+        )}
       </div>
 
       <div className="menu">

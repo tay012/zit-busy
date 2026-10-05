@@ -144,6 +144,7 @@ button{font-family:inherit;cursor:pointer;}
 .actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:16px;}
 .btn{border-radius:11px;padding:14px;font-size:14.5px;font-weight:700;border:1px solid var(--line);background:var(--bg);color:var(--text);}
 .btn.primary{background:var(--brand);color:#fff;border-color:var(--brand);}
+a.btn{display:block;text-align:center;text-decoration:none;}
 .btn[disabled]{opacity:.45;cursor:default;}
 .btn[aria-pressed="true"]{border-color:var(--packed);color:var(--packed);}
 .menu{padding:0 16px 40px;}
